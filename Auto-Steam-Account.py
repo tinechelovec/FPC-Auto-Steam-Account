@@ -23,7 +23,7 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 DESCRIPTION = 'Авто-закупка и выдача Steam-аккаунтов, а также выдача почт из локальных баз на FunPay'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
@@ -36,7 +36,8 @@ GROUP_URL = 'https://t.me/dev_thc_chat'
 CHANNEL_URL = 'https://t.me/by_thc'
 GITHUB_URL = 'https://github.com/tinechelovec/FPC-Auto-Steam-Account'
 GITHUB_REPO = 'tinechelovec/FPC-Auto-Steam-Account'
-SHOP_BOT_URL = 'https://t.me/dim4n4ikshop_bot'
+SHOP_BOT_URL = 'https://t.me/dim4n4ikshop_bot?start=ref7202094913'
+MAIL_BOT_URL = 'https://t.me/dim4n4ikemail_bot?start=ref7202094913'
 SHOP_CHAT_URL = 'https://t.me/berloga_dim4n4ik'
 SHOP_SITE_URL = 'https://dim4n4ik.shop'
 INSTRUCTION_URL = 'https://teletype.media/@tinechelovec/Auto-Steam-Account'
@@ -63,11 +64,13 @@ AUTO_DISABLED_FILE = os.path.join(STORAGE_DIR, 'auto_disabled_lots.json')
 DATABASES_META_FILE = os.path.join(STORAGE_DIR, 'databases.json')
 MIGRATION_FILE = os.path.join(STORAGE_DIR, 'migration.json')
 LOG_FILE = os.path.join(LOG_DIR, 'plugin.log')
-DEFAULT_BUYER_MESSAGES: Dict[str, str] = {'payment_received': '➖➖➖➖➖➖➖➖\n✅ Оплата получена! Выдаю товар, обычно это занимает меньше минуты…\n➖➖➖➖➖➖➖➖', 'goods_header': '✅ Ваш товар по заказу #{order_id}:', 'goods_footer': '🙏 Проверьте товар и подтвердите заказ:\n{order_url}\n⭐ Будем рады отзыву!\n➖➖➖➖➖➖➖➖', 'refund': '➖➖➖➖➖➖➖➖\n😔 К сожалению, выдать товар по заказу #{order_id} не получилось.\n💸 Деньги возвращены. Приносим извинения!\n➖➖➖➖➖➖➖➖', 'delay': '➖➖➖➖➖➖➖➖\n⏳ Возникла задержка с выдачей заказа #{order_id}.\nПродавец уже уведомлён и решит вопрос в ближайшее время.\n➖➖➖➖➖➖➖➖'}
+DEFAULT_BUYER_MESSAGES: Dict[str, str] = {'payment_received': '➖➖➖➖➖➖➖➖\n✅ Оплата получена! Выдаю товар, обычно это занимает меньше минуты…\n➖➖➖➖➖➖➖➖', 'goods_header': '🚨🚨🚨 ИНСТРУКЦИЯ ПО ВХОДУ В ПОЧТУ 🚨🚨🚨\n\n📧 Вход в почту: https://outlook.office.com/mail/\nДанные форматом:\nлогин стим:пароль стим:почта:пароль от почты\n\n‼️ Для входа в почту используйте ПОСЛЕДНИЕ два значения (после 2-го двоеточия) ‼️\n\n📎 Видеоинструкция гугл диск — https://drive.google.com/file/d/1iIi7BW6eI8Yl4q465jUD-J0BgVqUXcUd/view?usp=sharing', 'goods_footer': '🙏 Проверьте товар и подтвердите заказ:\n{order_url}\n⭐ Будем рады отзыву!\n➖➖➖➖➖➖➖➖', 'refund': '➖➖➖➖➖➖➖➖\n😔 К сожалению, выдать товар по заказу #{order_id} не получилось.\n💸 Деньги возвращены. Приносим извинения!\n➖➖➖➖➖➖➖➖', 'delay': '➖➖➖➖➖➖➖➖\n⏳ Возникла задержка с выдачей заказа #{order_id}.\nПродавец уже уведомлён и решит вопрос в ближайшее время.\n➖➖➖➖➖➖➖➖'}
+LEGACY_DEFAULT_GOODS_HEADER = '✅ Ваш товар по заказу #{order_id}:'
 BUYER_MESSAGE_LABELS = {'payment_received': 'Оплата получена', 'goods_header': 'Заголовок выдачи', 'goods_footer': 'После выдачи', 'refund': 'Возврат денег', 'delay': 'Задержка / ручная проверка'}
 DEFAULT_CONFIG: Dict[str, Any] = {'api_key': '', 'base_url': 'https://api.dim4n4ik.shop', 'plugin_enabled': True, 'auto_refund_enabled': False, 'low_balance_threshold_rub': 100.0, 'balance_check_interval_min': 10, 'notifications_enabled': True, 'notify_new_order': True, 'notify_success': True, 'notify_failure': True, 'notify_errors': True, 'notify_low_balance': True, 'notify_out_of_stock': True, 'buyer_messages': dict(DEFAULT_BUYER_MESSAGES), 'hidden_categories': None, 'auto_lots_by_stock': True, 'fp_auto_buffer': 25, 'fp_auto_sync_sec': 60, 'loss_protection': True, 'loss_min_margin_percent': 0, 'match_by_title': False, 'lot_cache': [], 'ignored_lot_ids': [], 'mail_catalog_migrated': False}
 DEFAULT_STATS: Dict[str, Any] = {'total_orders': 0, 'total_failed': 0, 'total_qty': 0, 'total_revenue_rub': 0.0, 'total_cost_rub': 0.0, 'items': {}, 'last_order_at': ''}
 _STORAGE_TYPES = {'settings.json': dict, 'bindings.json': dict, 'pending_orders.json': dict, 'processed_orders.json': dict, 'order_log.json': list, 'stats.json': dict, 'auto_disabled_lots.json': dict, 'databases.json': dict}
+FUNPAY_ORDER_QTY_MAX = 10
 def _raw_json(path: Path, expected=None):
     try:
         with path.open('r', encoding='utf-8') as f:
@@ -115,6 +118,8 @@ def _migration_merge_settings(value: Dict[str, Any]) -> Dict[str, Any]:
     raw_messages = value.get('buyer_messages')
     if isinstance(raw_messages, dict):
         messages.update({str(k): str(v) for k, v in raw_messages.items() if k in messages})
+        if str(raw_messages.get('goods_header') or '') == LEGACY_DEFAULT_GOODS_HEADER:
+            messages['goods_header'] = DEFAULT_BUYER_MESSAGES['goods_header']
     merged['buyer_messages'] = messages
     if not isinstance(merged.get('lot_cache'), list):
         merged['lot_cache'] = []
@@ -125,7 +130,7 @@ def _migration_normalize_binding(value: Any) -> Dict[str, Any]:
     if mode not in ('api', 'database'):
         mode = 'api'
     try:
-        qty = max(1, int(b.get('qty_per_unit', b.get('qty', 1)) or 1))
+        qty = max(1, min(FUNPAY_ORDER_QTY_MAX, int(b.get('qty_per_unit', b.get('qty', 1)) or 1)))
     except Exception:
         qty = 1
     target_raw = b.get('fp_stock_target')
@@ -290,17 +295,53 @@ def _early_storage_migration() -> Dict[str, Any]:
         report['errors'].append(str(e))
         logger.warning(f'{LP} storage migration skipped safely: {e}')
         return report
+def _log_event(event: str, level: int=logging.INFO, **fields: Any) -> None:
+    parts = [f'event={str(event or "event").replace(chr(10), " ")[:80]}']
+    for key, value in fields.items():
+        if value is None:
+            continue
+        name = str(key or 'field')[:60]
+        if any(token in name.lower() for token in ('api_key', 'token', 'password', 'content_b64', 'mafile_b64')):
+            text = '***'
+        else:
+            text = str(value).replace('\r', ' ').replace('\n', ' ')[:240]
+        parts.append(f'{name}={text}')
+    logger.log(level, f'{LP} ' + ' '.join(parts))
+def _close_file_logging(target_path: Optional[str]=None) -> None:
+    target = os.path.normcase(str(Path(target_path or LOG_FILE).resolve())) if (target_path or LOG_FILE) else ''
+    for handler in list(logger.handlers):
+        if not isinstance(handler, logging.FileHandler):
+            continue
+        current = os.path.normcase(str(Path(getattr(handler, 'baseFilename', '') or '').resolve()))
+        if target and current != target:
+            continue
+        try:
+            handler.acquire()
+            try:
+                if getattr(handler, 'stream', None):
+                    handler.flush()
+                logger.removeHandler(handler)
+                handler.close()
+            finally:
+                handler.release()
+        except Exception:
+            try:
+                logger.removeHandler(handler)
+                handler.close()
+            except Exception:
+                pass
 def _configure_file_logging() -> None:
     try:
         if _ensure_storage_layout():
             return
-        target = str(Path(LOG_FILE).resolve())
+        target = os.path.normcase(str(Path(LOG_FILE).resolve()))
         for handler in list(logger.handlers):
-            if isinstance(handler, logging.FileHandler) and getattr(handler, 'baseFilename', '') == target:
+            if isinstance(handler, logging.FileHandler) and os.path.normcase(str(Path(getattr(handler, 'baseFilename', '') or '').resolve())) == target:
                 return
         handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
         handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
         logger.addHandler(handler)
+        _log_event('logging_ready', path=target)
     except Exception as e:
         logger.warning(f'{LP} file logging disabled: {e}')
 cardinal = None
@@ -843,13 +884,7 @@ def _save_bindings() -> None:
 def _save_orders_state() -> None:
     with _orders_lock:
         save_json(PENDING_FILE, _pending)
-        processed = _processed
-        if len(processed) > 2000:
-            newest = sorted(processed.items(), key=lambda kv: kv[1], reverse=True)[:1000]
-            processed = dict(newest)
-            _processed.clear()
-            _processed.update(processed)
-        save_json(PROCESSED_FILE, processed)
+        save_json(PROCESSED_FILE, _processed)
 def _append_order_log(entry: Dict[str, Any]) -> None:
     log = load_json(ORDER_LOG_FILE, [])
     if not isinstance(log, list):
@@ -968,10 +1003,19 @@ def _fp_send(chat_id, text: str, buyer_username: Optional[str]=None) -> bool:
             logger.warning(f'{LP} fp send attempt {attempt + 1}: {e}')
             time.sleep(2 * (attempt + 1))
     return False
-def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: List[str], product_title: str='', qty: int=0) -> bool:
-    ok = True
+def _mark_order_delivered(order_id: str) -> None:
+    oid = str(order_id)
+    with _orders_lock:
+        current = _pending.get(oid)
+        if current is not None:
+            current['step'] = 'delivered'
+            current['delivered_at'] = time.time()
+        _processed[oid] = time.time()
+        _save_orders_state()
+    _log_event('order_delivered_marker', order_id=oid)
+def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: List[str], product_title: str='', qty: int=0) -> Dict[str, Any]:
     order_url = f'https://funpay.com/orders/{order_id}/'
-    header = f'{MSG_SEP}\n' + _buyer_message('goods_header', order_id=order_id, order_url=order_url, product_title=product_title, qty=qty)
+    header = _buyer_message('goods_header', order_id=order_id, order_url=order_url, product_title=product_title, qty=qty)
     chunks: List[str] = []
     cur: List[str] = []
     cur_len = 0
@@ -986,17 +1030,21 @@ def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: L
         cur_len += len(v) + 1
     if cur:
         chunks.append('\n'.join(cur))
-    if chunks and len(header) + 1 + len(chunks[0]) <= BUYER_MSG_LIMIT:
-        first = header + '\n' + chunks.pop(0)
-    else:
-        first = header
-    ok &= _fp_send(chat_id, first, buyer_username)
-    for ch in chunks:
-        ok &= _fp_send(chat_id, ch, buyer_username)
-        time.sleep(0.5)
+    header_sent = _fp_send(chat_id, header, buyer_username)
+    goods_messages: List[str] = list(chunks)
+    results = []
+    for ch in goods_messages:
+        results.append(_fp_send(chat_id, ch, buyer_username))
+        if len(goods_messages) > 1:
+            time.sleep(0.5)
+    goods_sent = bool(results) and all(results)
+    goods_partial = any(results) and not goods_sent
+    if goods_sent:
+        _mark_order_delivered(str(order_id))
     footer = _buyer_message('goods_footer', order_id=order_id, order_url=order_url, product_title=product_title, qty=qty)
-    ok &= _fp_send(chat_id, footer, buyer_username)
-    return bool(ok)
+    footer_sent = _fp_send(chat_id, footer, buyer_username) if goods_sent else False
+    _log_event('funpay_delivery', order_id=order_id, goods_messages=len(goods_messages), goods_sent=goods_sent, goods_partial=goods_partial, header_sent=header_sent, footer_sent=footer_sent)
+    return {'goods_sent': goods_sent, 'goods_partial': goods_partial, 'header_sent': bool(header_sent), 'footer_sent': bool(footer_sent), 'goods_messages': len(goods_messages)}
 def _try_refund(order_id: str) -> bool:
     try:
         cardinal.account.refund(str(order_id))
@@ -1025,15 +1073,19 @@ class ShopClient:
             headers['Idempotency-Key'] = idem_key
         last_net: Optional[Exception] = None
         for attempt in range(1, max_attempts + 1):
+            started = time.monotonic()
             try:
                 r = requests.request(method, url, json=body, headers=headers, timeout=timeout)
+                _log_event('api_request', method=method, path=path, status=r.status_code, attempt=attempt, ms=int((time.monotonic() - started) * 1000))
             except (requests.Timeout, requests.ConnectionError) as e:
                 last_net = e
+                _log_event('api_network_error', level=logging.WARNING, method=method, path=path, attempt=attempt, error=type(e).__name__, ms=int((time.monotonic() - started) * 1000))
                 logger.warning(f'{LP} api network {method} {path} attempt {attempt}: {e}')
                 time.sleep(min(2 * attempt + random.uniform(0, 1), 15))
                 continue
             except requests.RequestException as e:
                 last_net = e
+                _log_event('api_request_error', level=logging.WARNING, method=method, path=path, attempt=attempt, error=type(e).__name__, ms=int((time.monotonic() - started) * 1000))
                 time.sleep(2)
                 continue
             if r.status_code == 200:
@@ -1129,7 +1181,7 @@ def _hidden_categories(catalog: List[dict]) -> set:
         cfg_set('hidden_categories', hidden)
     return set(hidden)
 def _is_text_kind(it: dict) -> bool:
-    return (it.get('kind') or 'text') == 'text'
+    return str(it.get('kind') or 'text').lower() in ('text', 'steam')
 def _visible_catalog(catalog: Optional[List[dict]]=None) -> List[dict]:
     if catalog is None:
         catalog = _get_catalog_cached()
@@ -1236,6 +1288,20 @@ def _binding_source_stock(binding: Dict[str, Any], max_age: float=60.0) -> int:
         return 0
 def _binding_effective_stock(binding: Dict[str, Any], max_age: float=60.0) -> int:
     return max(0, _binding_source_stock(binding, max_age=max_age) // _binding_qty_per_unit(binding))
+def _binding_effective_stock_cached(binding: Dict[str, Any]) -> Optional[int]:
+    if str(binding.get('delivery_mode') or 'api') == 'database':
+        return max(0, _database_stock(str(binding.get('database_id') or '')) // _binding_qty_per_unit(binding))
+    try:
+        pid = int(binding.get('product_id'))
+    except Exception:
+        return None
+    for item in list(_catalog_cache.get('items') or []):
+        try:
+            if int(item.get('id', -1)) == pid:
+                return max(0, int(item.get('in_stock', 0)) // _binding_qty_per_unit(binding))
+        except Exception:
+            continue
+    return None
 def _sync_binding_stock(lot_id: str, binding: Dict[str, Any]) -> Tuple[bool, int]:
     effective = _binding_effective_stock(binding, max_age=30.0)
     limit = _binding_stock_target(binding)
@@ -1621,18 +1687,35 @@ def handle_new_order(cardinal_obj, event, *args) -> None:
         _save_orders_state()
     source = 'база' if mode == 'database' else 'API'
     logger.info(f"{LP} #{oid} наш заказ: lot={key} mode={mode} product={product_id} qty={qty} price={od['price_rub']} {currency}")
+    _log_event('order_received', order_id=oid, lot_id=key, mode=mode, product_id=product_id, qty=qty, buyer=od['buyer'])
     _notify_admin(f"🛒 <b>Новый заказ #{oid}</b>\n📦 {product_title} ×{qty}\n👤 {od['buyer']}\n🚚 Источник: {source}\n💵 Продажа: {od['price_rub']:.2f} {od['currency'] or '₽'}", etype='new_order')
-    if mode == 'api' and qty > API_QTY_MAX:
-        _fail_order(oid, ShopApiError(0, 'qty_limit', f'Запрошено {qty} шт., лимит API — {API_QTY_MAX} шт. за заказ'))
+    if qty > FUNPAY_ORDER_QTY_MAX:
+        _fail_order(oid, ShopApiError(0, 'qty_limit', f'Запрошено {qty} шт., максимум автоматической выдачи FunPay — {FUNPAY_ORDER_QTY_MAX} шт. за заказ'))
         return
     _fp_send(od['chat_id'], _buyer_message('payment_received', order_id=oid, order_url=f'https://funpay.com/orders/{oid}/', product_title=product_title, qty=qty), od['buyer'])
     threading.Thread(target=process_order, args=(oid,), daemon=True).start()
+def _api_delivery_payload(resp: Dict[str, Any], expected_qty: int) -> Dict[str, Any]:
+    items = resp.get('items') if isinstance(resp, dict) else []
+    items = items if isinstance(items, list) else []
+    files = [it for it in items if isinstance(it, dict) and str(it.get('type') or '').lower() == 'file']
+    values = [str(it.get('value')) for it in items if isinstance(it, dict) and str(it.get('type') or 'text').lower() in ('text', 'steam') and it.get('value')]
+    try:
+        reported_qty = int(resp.get('qty', expected_qty) or expected_qty)
+    except Exception:
+        reported_qty = expected_qty
+    if files:
+        return {'ok': False, 'final': True, 'values': values, 'reason': f'API вернул файловый товар ({len(files)} файл/файлов). Автовыдача FunPay поддерживает только text/steam value.'}
+    if reported_qty != expected_qty:
+        return {'ok': False, 'final': False, 'values': values, 'reason': f'API сообщает qty={reported_qty}, ожидалось {expected_qty}'}
+    if len(values) != expected_qty:
+        return {'ok': False, 'final': False, 'values': values, 'reason': f'API вернул {len(values)} текстовых позиций вместо {expected_qty}'}
+    return {'ok': True, 'final': True, 'values': values, 'reason': ''}
 def _fulfill_api_order(od: Dict[str, Any]) -> Dict[str, Any]:
     client = _get_client()
     if client is None:
         raise ShopApiError(0, 'no_api_key', 'API-ключ не задан (⚙️ Настройки → Аккаунт dim4n4ik.shop)')
+    need = int(od.get('qty', 1) or 1)
     if not od.get('shop_order_id'):
-        need = int(od.get('qty', 1) or 1)
         try:
             if _product_stock(int(od['product_id'])) < need and _product_stock(int(od['product_id']), max_age=0) < need:
                 raise ShopApiError(409, 'out_of_stock', 'Товар закончился на складе магазина', {'available': 0})
@@ -1646,7 +1729,7 @@ def _fulfill_api_order(od: Dict[str, Any]) -> Dict[str, Any]:
             cat_kop = _product_price_kop(int(od['product_id']))
             cur = (od.get('currency') or '').lower()
             if cur in ('', 'rub', '₽') and price_rub > 0 and cat_kop > 0:
-                cost_rub = cat_kop * int(od.get('qty', 1)) / 100.0
+                cost_rub = cat_kop * need / 100.0
                 margin = float(cfg_get('loss_min_margin_percent') or 0)
                 floor = cost_rub * (1 + margin / 100.0)
                 if price_rub + 1e-06 < floor:
@@ -1659,21 +1742,31 @@ def _fulfill_api_order(od: Dict[str, Any]) -> Dict[str, Any]:
     if od.get('shop_order_id'):
         resp = client.get_order(od['shop_order_id'])
     else:
-        resp = client.create_order(int(od['product_id']), int(od['qty']), str(od['idem_key']))
+        _log_event('api_purchase_start', order_id=od.get('order_id'), product_id=od.get('product_id'), qty=need)
+        resp = client.create_order(int(od['product_id']), need, str(od['idem_key']))
         _catalog_cache['ts'] = 0.0
         _catalog_cache['items'] = []
         with _orders_lock:
             od['shop_order_id'] = resp.get('order_id')
             od['cost_kop'] = resp.get('cost_kop')
-            od['step'] = 'delivering'
+            od['step'] = 'purchased'
             _save_orders_state()
-    items = resp.get('items') or []
-    values = [str(it.get('value')) for it in items if isinstance(it, dict) and it.get('value')]
-    files = [it for it in items if isinstance(it, dict) and str(it.get('type') or '').lower() == 'file']
-    if not values:
-        reason = 'API вернул файловый товар — в чат FunPay можно выдать только текст. Выдайте вручную (файлы в заказе на dim4n4ik.shop).' if files else 'API вернул заказ без текстовых позиций'
-        return {'status': 'manual', 'reason': reason, 'values': [], 'cost_kop': int(od.get('cost_kop') or resp.get('cost_kop') or 0)}
-    return {'status': 'ready', 'values': values, 'cost_kop': int(od.get('cost_kop') or resp.get('cost_kop') or 0), 'source': 'api'}
+        _log_event('api_purchase_done', order_id=od.get('order_id'), shop_order_id=od.get('shop_order_id'), qty=need, cost_kop=od.get('cost_kop'))
+    check = _api_delivery_payload(resp, need)
+    if not check['ok'] and not check['final'] and od.get('shop_order_id'):
+        for attempt in range(1, 4):
+            time.sleep(1 if attempt == 1 else 2)
+            resp = client.get_order(int(od['shop_order_id']))
+            if od.get('cost_kop') is None:
+                od['cost_kop'] = resp.get('cost_kop')
+            check = _api_delivery_payload(resp, need)
+            _log_event('api_order_refetch', order_id=od.get('order_id'), shop_order_id=od.get('shop_order_id'), attempt=attempt, ready=check['ok'], received=len(check.get('values') or []), expected=need)
+            if check['ok'] or check['final']:
+                break
+    cost_kop = int(od.get('cost_kop') or (resp.get('cost_kop') if isinstance(resp, dict) else 0) or 0)
+    if not check['ok']:
+        return {'status': 'manual', 'reason': check['reason'], 'values': list(check.get('values') or []), 'cost_kop': cost_kop}
+    return {'status': 'ready', 'values': list(check['values']), 'cost_kop': cost_kop, 'source': 'api'}
 def _fulfill_database_order(od: Dict[str, Any]) -> Dict[str, Any]:
     database_id = str(od.get('database_id') or '')
     db = _database_by_id(database_id)
@@ -1702,7 +1795,7 @@ def process_order(oid: str) -> None:
         _fail_order(oid, e)
         return
     except Exception as e:
-        logger.error(f'{LP} #{oid} неожиданная ошибка выдачи: {e}')
+        logger.exception(f'{LP} #{oid} неожиданная ошибка выдачи: {e}')
         _notify_admin(f'⚠️ <b>Ошибка плагина в заказе #{oid}</b>\n{str(e)[:300]}', etype='error')
         _manual_check(oid, str(e))
         return
@@ -1710,27 +1803,28 @@ def process_order(oid: str) -> None:
         _manual_check(oid, str(result.get('reason') or 'Требуется ручная проверка'))
         return
     values = list(result.get('values') or [])
-    if delivery_mode == 'database':
+    with _orders_lock:
+        current = _pending.get(oid)
+        if current:
+            current['step'] = 'sending'
+            current['sending_started_at'] = time.time()
+            _save_orders_state()
+    _log_event('order_sending', order_id=oid, mode=delivery_mode, qty=len(values))
+    delivery = _send_goods(oid, od['chat_id'], od['buyer'], values, od['product_title'], od['qty'])
+    cost_kop = int(result.get('cost_kop') or 0)
+    if not delivery.get('goods_sent'):
         with _orders_lock:
             current = _pending.get(oid)
             if current:
-                current['step'] = 'sending'
-                _save_orders_state()
-    delivered = _send_goods(oid, od['chat_id'], od['buyer'], values, od['product_title'], od['qty'])
-    cost_kop = int(result.get('cost_kop') or 0)
-    if not delivered:
-        if delivery_mode == 'database':
-            with _orders_lock:
-                current = _pending.get(oid)
-                if current:
+                current['delivery_uncertain'] = True
+                if delivery_mode == 'database':
                     current['database_uncertain'] = True
-                    current['error'] = 'Товар зарезервирован, но FunPay не подтвердил полную доставку'
-                    _save_orders_state()
-            _manual_check(oid, 'Товар из базы зарезервирован, но результат отправки в FunPay неопределён. Резерв не возвращён автоматически, чтобы исключить двойную продажу.')
-            return
-        _notify_admin(f"🛑 <b>#{oid}: товар куплен, но НЕ доставлен в чат FunPay!</b>\n📦 {od['product_title']} ×{od['qty']}\n👤 Покупатель: {od['buyer']}\nОтправьте вручную:\n<code>" + '\n'.join(values[:20]) + '</code>', etype=None)
-        _finish_order(oid, 'DELIVERY_FAILED', cost_kop)
+                current['error'] = 'FunPay не подтвердил полную отправку всех сообщений с товаром'
+                _save_orders_state()
+        _manual_check(oid, 'Результат отправки товара в FunPay неопределён. Автоматическая повторная выдача заблокирована, чтобы исключить двойную продажу. Проверьте чат покупателя вручную.')
         return
+    if not delivery.get('footer_sent'):
+        _notify_admin(f'⚠️ <b>Заказ #{oid}: товар выдан, но финальное сообщение не отправилось</b>\nПовторно товар не отправляется.', etype='error')
     if delivery_mode == 'database':
         try:
             _commit_database_reservation(str(od.get('database_id') or ''), oid)
@@ -1774,8 +1868,9 @@ def _finish_order(oid: str, status: str, cost_kop: int=0) -> None:
         _append_order_log({'order_id': oid, 'product_id': od['product_id'], 'product_title': od['product_title'], 'qty': od['qty'], 'price_rub': od['price_rub'], 'cost_kop': cost_kop or od.get('cost_kop'), 'shop_order_id': od.get('shop_order_id'), 'buyer': od['buyer'], 'status': status, 'error': od.get('error', ''), 'ts': time.time(), 'ts_str': _now_str()})
         if not str(status).startswith('COMPLETED'):
             _record_fail()
+    _log_event('order_finished', order_id=oid, status=status, cost_kop=cost_kop)
     logger.info(f'{LP} #{oid} завершён: {status}')
-ERROR_HUMAN = {'insufficient_balance': 'Недостаточно баланса API — пополните в @dim4n4ikshop_bot (Профиль → Пополнить)', 'out_of_stock': 'Товар закончился на складе магазина', 'invalid_key': 'API-ключ неверен или отозван — создайте новый в @dim4n4ikshop_bot', 'unauthorized': 'API-ключ не принят — проверьте ключ в настройках', 'forbidden': 'У ключа нет прав на покупки — создайте новый ключ', 'not_found': 'Товар не найден в магазине — проверьте привязку', 'quota_exceeded': 'Превышена часовая квота API (1000 шт/час) — попробуйте позже', 'no_api_key': 'API-ключ не задан в настройках плагина', 'qty_limit': 'Слишком большое количество для одного заказа', 'loss_block': 'Цена лота ниже закупки — продажа заблокирована (защита от убытка)', 'database_stock': 'В базе аккаунтов недостаточно товара', 'database_missing': 'База аккаунтов не найдена или удалена'}
+ERROR_HUMAN = {'insufficient_balance': 'Недостаточно баланса API — пополните: https://t.me/dim4n4ikshop_bot?start=ref7202094913 → Профиль → Пополнить', 'out_of_stock': 'Товар закончился на складе магазина', 'invalid_key': 'API-ключ неверен или отозван — создайте новый: https://t.me/dim4n4ikshop_bot?start=ref7202094913', 'unauthorized': 'API-ключ не принят — проверьте ключ в настройках', 'forbidden': 'У ключа нет прав на покупки — создайте новый ключ', 'not_found': 'Товар не найден в магазине — проверьте привязку', 'quota_exceeded': 'Превышена часовая квота API (1000 шт/час) — попробуйте позже', 'no_api_key': 'API-ключ не задан в настройках плагина', 'qty_limit': 'Слишком большое количество для одного заказа', 'loss_block': 'Цена лота ниже закупки — продажа заблокирована (защита от убытка)', 'database_stock': 'В базе аккаунтов недостаточно товара', 'database_missing': 'База аккаунтов не найдена или удалена'}
 BUSINESS_ERRORS = {'insufficient_balance', 'out_of_stock', 'not_found', 'invalid_request'}
 REFUNDABLE = {'insufficient_balance', 'out_of_stock', 'not_found', 'qty_limit', 'loss_block', 'database_stock', 'database_missing'}
 def _fail_order(oid: str, err: ShopApiError) -> None:
@@ -1799,6 +1894,7 @@ def _fail_order(oid: str, err: ShopApiError) -> None:
         if err.code in BUSINESS_ERRORS:
             od['idem_key'] = f"fp-{oid}-r{od['attempt']}"
         _save_orders_state()
+    _log_event('order_failed', level=logging.ERROR, order_id=oid, code=err.code, reason=human + extra, attempt=od['attempt'])
     logger.error(f"{LP} #{oid} закупка не удалась: {od['error']}")
     auto_refund = bool(cfg_get('auto_refund_enabled')) and err.code in REFUNDABLE
     refunded = False
@@ -1832,6 +1928,89 @@ def _manual_check(oid: str, reason: str) -> None:
         kb = _make_kb([[('🔁 Повторить (безопасно)', f'd4s_retry:{oid}'), ('↩️ Вернуть деньги', f'd4s_refund:{oid}')]])
         help_text = '\n\n«Повторить» использует тот же Idempotency-Key.'
     _notify_admin(f"⚠️ <b>Заказ #{oid}: требуется проверка</b>\n📦 {od['product_title']} ×{od['qty']} | 👤 {od['buyer']}\n🧾 {reason}{help_text}", keyboard=kb, etype='failure')
+def _funpay_order_paid_state(order_id: str) -> Tuple[Optional[bool], str]:
+    if cardinal is None or getattr(cardinal, 'account', None) is None:
+        return (None, 'Cardinal недоступен')
+    try:
+        order = cardinal.account.get_order(str(order_id))
+    except Exception as e:
+        _log_event('restart_funpay_check_error', level=logging.WARNING, order_id=order_id, error=str(e)[:180])
+        return (None, str(e)[:180])
+    raw = getattr(order, 'status', None)
+    status = str(getattr(raw, 'name', None) or getattr(raw, 'value', None) or raw or '')
+    if not status:
+        return (None, 'пустой статус')
+    return ('PAID' in status.upper(), status)
+def _restart_order_action(order_id: str, od: Dict[str, Any]) -> str:
+    oid = str(order_id)
+    if oid in _processed or str(od.get('step') or '') == 'delivered':
+        if str(od.get('delivery_mode') or 'api') == 'database' and od.get('database_reserved'):
+            return 'manual'
+        return 'processed'
+    mode = str(od.get('delivery_mode') or 'api')
+    if mode == 'database' and od.get('database_reserved'):
+        return 'manual'
+    step = str(od.get('step') or 'processing')
+    if step in ('sending', 'delivering', 'manual_check', 'failed'):
+        return 'manual'
+    if step in ('processing', 'new', 'purchased'):
+        return 'resume'
+    return 'manual'
+def _restart_manual_notice(order_id: str, od: Dict[str, Any], reason: str) -> None:
+    oid = str(order_id)
+    uncertain = bool(od.get('delivery_uncertain')) or str(od.get('step') or '') in ('sending', 'delivering', 'delivered')
+    with _orders_lock:
+        current = _pending.get(oid)
+        if current:
+            current['step'] = 'manual_check'
+            current['error'] = reason
+            if uncertain:
+                current['delivery_uncertain'] = True
+            _save_orders_state()
+    if str(od.get('delivery_mode') or 'api') == 'database' and od.get('database_reserved'):
+        kb = _database_manual_resolution_kb(oid)
+    else:
+        kb = _make_kb([[('🔁 Повторить (после проверки)', f'd4s_retry:{oid}'), ('↩️ Вернуть деньги', f'd4s_refund:{oid}')]])
+    _notify_admin(f"⚠️ <b>Заказ #{oid}: не возобновлён автоматически</b>\n📦 {od.get('product_title') or 'товар'} ×{od.get('qty', 1)}\n🧾 {reason}\n\nПроверьте заказ и чат покупателя перед любым действием.", keyboard=kb, etype=None)
+def _recover_pending_orders_after_restart() -> None:
+    with _orders_lock:
+        snapshot = [(str(oid), dict(od)) for oid, od in _pending.items()]
+    resumed = 0
+    for oid, od in snapshot:
+        try:
+            age = time.time() - float(od.get('created_at', 0) or 0)
+        except Exception:
+            age = 0
+        if age > 172800:
+            _restart_manual_notice(oid, od, 'Незавершённый заказ старше 48 часов.')
+            continue
+        action = _restart_order_action(oid, od)
+        if action == 'processed':
+            with _orders_lock:
+                _pending.pop(oid, None)
+                _save_orders_state()
+            _log_event('restart_processed_cleanup', order_id=oid)
+            continue
+        paid, status = _funpay_order_paid_state(oid)
+        _log_event('restart_funpay_check', order_id=oid, paid=paid, status=status, step=od.get('step'))
+        if action == 'manual':
+            status_note = f' Статус FunPay после рестарта: {status}.' if status else ''
+            _restart_manual_notice(oid, od, 'До рестарта выдача могла уже начаться. Повторная автоматическая отправка заблокирована.' + status_note)
+            continue
+        if paid is not True:
+            if paid is False:
+                with _orders_lock:
+                    current = _pending.get(oid)
+                    if current:
+                        current['error'] = f'После рестарта заказ FunPay уже не PAID: {status}'
+                _finish_order(oid, 'NOT_PAID_AFTER_RESTART', int(od.get('cost_kop') or 0))
+            else:
+                _restart_manual_notice(oid, od, f'Не удалось перепроверить статус FunPay: {status}')
+            continue
+        resumed += 1
+        threading.Thread(target=process_order, args=(oid,), daemon=True).start()
+    if resumed:
+        _notify_admin(f'🔄 После рестарта безопасно возобновлено заказов: {resumed}', etype=None)
 def handle_new_message(cardinal_obj, event, *args) -> None:
     global cardinal
     if cardinal is None:
@@ -1877,7 +2056,7 @@ def _balance_loop() -> None:
             threshold = float(cfg_get('low_balance_threshold_rub') or 0) * 100
             if threshold and bal < threshold and (not _low_balance_alerted):
                 _low_balance_alerted = True
-                _notify_admin(f'⚠️ <b>Низкий баланс API: {_fmt_rub_kop(bal)}</b> (порог {_fmt_rub_kop(int(threshold))})\nПополните в @dim4n4ikshop_bot → Профиль → Пополнить, иначе заказы перестанут выдаваться.', etype='low_balance')
+                _notify_admin(f'⚠️ <b>Низкий баланс API: {_fmt_rub_kop(bal)}</b> (порог {_fmt_rub_kop(int(threshold))})\nПополните: https://t.me/dim4n4ikshop_bot?start=ref7202094913 → Профиль → Пополнить, иначе заказы перестанут выдаваться.', etype='low_balance')
             elif threshold and bal >= threshold and _low_balance_alerted:
                 _low_balance_alerted = False
                 _notify_admin(f'✅ Баланс API восстановлен: {_fmt_rub_kop(bal)}', etype='low_balance')
@@ -1963,14 +2142,15 @@ def _plugin_home(chat_id, message_id=None) -> None:
     kb = _make_kb([[('⚙️ Настройки', 'd4s_main'), ('ℹ️ Информация', 'd4s_info')], [('⬆️ Обновить плагин', 'd4s_update'), ('🗑 Удалить', 'd4s_delete_ask')], [('🔙 К списку плагинов', CB_PLUGINS_LIST_OPEN)]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _plugin_info(chat_id, message_id=None) -> None:
-    text = 'ℹ️ <b>Информация</b>\n\n⬅️ <b>Слева</b> — информация и ресурсы магазина dim4n4ik.shop.\n➡️ <b>Справа</b> — мои ресурсы и поддержка плагина.\n\n🔀 Этот проект — форк плагина от самого сервиса dim4n4ik.shop.'
+    text = 'ℹ️ <b>Информация</b>\n\nСлева — официальный сервис dim4n4ik.shop и его магазины. Справа — разработчик плагина, поддержка, чат, канал и GitHub.\n\n🎮 Steam-аккаунты — через Steam-магазин.\n📧 Почты — через отдельный магазин почт.\n\n👤 Создатель сервиса: @dmitry_mak09\n👨‍💻 Разработчик плагина: @tinechelovec'
     if tg_types:
         kb = tg_types.InlineKeyboardMarkup()
         kb.row(tg_types.InlineKeyboardButton('📖 Инструкция', url=INSTRUCTION_URL), tg_types.InlineKeyboardButton('📚 GitHub-инструкция', url=ALT_INSTRUCTION_URL))
-        kb.row(tg_types.InlineKeyboardButton('🏪 Магазин', url=SHOP_BOT_URL), tg_types.InlineKeyboardButton('📢 Канал', url=CHANNEL_URL))
-        kb.row(tg_types.InlineKeyboardButton('💬 Чат магазина', url=SHOP_CHAT_URL), tg_types.InlineKeyboardButton('💬 Мой чат', url=GROUP_URL))
-        kb.row(tg_types.InlineKeyboardButton('🌐 Сайт', url=SHOP_SITE_URL), tg_types.InlineKeyboardButton('💻 GitHub', url=GITHUB_URL))
-        kb.row(tg_types.InlineKeyboardButton('👤 @dmitry_mak09', url=ORIGINAL_AUTHOR_URL), tg_types.InlineKeyboardButton('👤 @tinechelovec', url=CREATOR_URL))
+        kb.row(tg_types.InlineKeyboardButton('🎮 Steam-магазин', url=SHOP_BOT_URL), tg_types.InlineKeyboardButton('👨‍💻 Разработчик', url=CREATOR_URL))
+        kb.row(tg_types.InlineKeyboardButton('📧 Почты', url=MAIL_BOT_URL), tg_types.InlineKeyboardButton('💬 Поддержка', url=CREATOR_URL))
+        kb.row(tg_types.InlineKeyboardButton('💬 Чат магазина', url=SHOP_CHAT_URL), tg_types.InlineKeyboardButton('💬 Чат плагина', url=GROUP_URL))
+        kb.row(tg_types.InlineKeyboardButton('🌐 Сайт', url=SHOP_SITE_URL), tg_types.InlineKeyboardButton('📢 Канал', url=CHANNEL_URL))
+        kb.row(tg_types.InlineKeyboardButton('👤 Создатель сервиса', url=ORIGINAL_AUTHOR_URL), tg_types.InlineKeyboardButton('💻 GitHub', url=GITHUB_URL))
         kb.row(tg_types.InlineKeyboardButton('◀️ Назад', callback_data='d4s_home'))
     else:
         kb = None
@@ -2223,7 +2403,7 @@ def _show_wait_target(chat_id, message_id, target: str) -> None:
     elif target == 'd4s_update':
         _plugin_update_menu(chat_id, message_id)
     else:
-        _menu_main(chat_id, message_id, live_balance=True)
+        _menu_main(chat_id, message_id, live_balance=False)
 def _cancel_wait(chat_id, st: Dict[str, Any], message_id=None) -> None:
     _, target = _wait_target(st)
     _waiting.pop(chat_id, None)
@@ -2254,7 +2434,7 @@ def _onoff(key: str) -> str:
 def _menu_account(chat_id, message_id=None) -> None:
     key = cfg_get('api_key')
     bal_txt = _fmt_rub_kop(_last_balance_kop) if _last_balance_kop is not None else '—'
-    text = f'🏪 <b>Аккаунт dim4n4ik.shop</b>\n\n🔑 API-ключ: {_mask_key(key)}\n🌐 API: <code>{cfg_get("base_url")}</code>\n💰 Баланс API: <b>{bal_txt}</b>\n\nЗдесь можно подключить, заменить или удалить API-ключ магазина.'
+    text = f'🏪 <b>Аккаунт dim4n4ik.shop</b>\n\n🔑 API-ключ: {_mask_key(key)}\n🌐 API: <code>{cfg_get("base_url")}</code>\n💰 Баланс API: <b>{bal_txt}</b>\n\n🎮 Steam-магазин: <a href="{SHOP_BOT_URL}">открыть бота</a>\n📧 Магазин почт: <a href="{MAIL_BOT_URL}">открыть бота</a>\n\nЗдесь можно подключить, заменить или удалить API-ключ магазина.'
     rows = []
     if key:
         rows.append([('🔄 Изменить API-ключ', 'd4s_set_key'), ('🗑 Удалить API-ключ', 'd4s_key_delete_ask')])
@@ -2357,9 +2537,9 @@ def _menu_database_detail(chat_id, message_id, database_id: str) -> None:
     refs = _database_references(database_id)
     mail = _is_mail_database(db)
     if mail:
-        text = f"📧 <b>{db['name']}</b>\n\n📧 Тип: <b>{db['product_title']}</b>\n📥 Пополнение: <b>только текстом или файлом</b>\n✅ Доступно: <b>{available}</b>\n⏳ В резерве: <b>{reserved}</b>\n➕ Всего добавлено: <b>{db['total_added']}</b>\n🛒 Продано из базы: <b>{db['total_sold']}</b>\n🔗 Используют лоты: <b>{len(refs)}</b>"
+        text = f"📧 <b>{db['name']}</b>\n\n📧 Тип: <b>{db['product_title']}</b>\n📥 Пополнение: <b>только текстом или файлом</b>\n🛒 Магазин почт: <a href=\"{MAIL_BOT_URL}\">открыть бота</a>\n✅ Доступно: <b>{available}</b>\n⏳ В резерве: <b>{reserved}</b>\n➕ Всего добавлено: <b>{db['total_added']}</b>\n🛒 Продано из базы: <b>{db['total_sold']}</b>\n🔗 Используют лоты: <b>{len(refs)}</b>"
     else:
-        text = f"🗃 <b>{db['name']}</b>\n\n📦 Товар: <b>{db['product_title']}</b>\nID товара: <code>{db['product_id']}</code>\n✅ Доступно: <b>{available}</b>\n⏳ В резерве: <b>{reserved}</b>\n➕ Всего добавлено: <b>{db['total_added']}</b>\n🛒 Продано из базы: <b>{db['total_sold']}</b>\n🔗 Используют лоты: <b>{len(refs)}</b>"
+        text = f"🗃 <b>{db['name']}</b>\n\n📦 Товар: <b>{db['product_title']}</b>\nID товара: <code>{db['product_id']}</code>\n🎮 Steam-магазин: <a href=\"{SHOP_BOT_URL}\">открыть бота</a>\n✅ Доступно: <b>{available}</b>\n⏳ В резерве: <b>{reserved}</b>\n➕ Всего добавлено: <b>{db['total_added']}</b>\n🛒 Продано из базы: <b>{db['total_sold']}</b>\n🔗 Используют лоты: <b>{len(refs)}</b>"
     rows = [[('👁 Просмотреть аккаунты', f'd4s_db_view:{database_id}:available:0')]]
     if not mail:
         rows.append([('🛒 Купить через dim4n4ik.shop', f'd4s_db_replenish:{database_id}')])
@@ -2380,28 +2560,17 @@ def _menu_database_items(chat_id, message_id, database_id: str, section: str='av
     else:
         section = 'available'
         rows_data = [(str(value), '') for value in inv.get('available', [])]
-    per_page = 10
-    pages = max(1, (len(rows_data) + per_page - 1) // per_page)
-    page = max(0, min(int(page), pages - 1))
-    shown = rows_data[page * per_page:(page + 1) * per_page]
+    shown = rows_data[:10]
     label = 'Доступные' if section == 'available' else 'В резерве'
-    lines = [f"👁 <b>{db['name']}</b>", f"{label}: <b>{len(rows_data)}</b>", f'Страница <b>{page + 1}/{pages}</b>', '']
+    lines = [f"👁 <b>{db['name']}</b>", f"{label}: <b>{len(rows_data)}</b>", f'Показаны первые: <b>{len(shown)}</b> из <b>{len(rows_data)}</b>', '']
     if shown:
-        for idx, (value, order_id) in enumerate(shown, start=page * per_page + 1):
+        for idx, (value, order_id) in enumerate(shown, start=1):
             safe = value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
             suffix = f' · заказ <code>{order_id}</code>' if order_id else ''
             lines.append(f'<b>{idx}.</b> <code>{safe}</code>{suffix}')
     else:
         lines.append('Записей нет.')
     rows = [[('✅ Доступные', f'd4s_db_view:{database_id}:available:0'), ('⏳ Резерв', f'd4s_db_view:{database_id}:reserved:0')]]
-    nav = []
-    if page > 0:
-        nav.append(('⬅️', f'd4s_db_view:{database_id}:{section}:{page - 1}'))
-    nav.append((f'{page + 1}/{pages}', 'd4s_noop'))
-    if page < pages - 1:
-        nav.append(('➡️', f'd4s_db_view:{database_id}:{section}:{page + 1}'))
-    if len(nav) > 1:
-        rows.append(nav)
     if section == 'available' and rows_data:
         rows.append([('📥 Скачать доступные .txt', f'd4s_db_export:{database_id}')])
     rows.append([('🔙 К базе', f'd4s_db:{database_id}')])
@@ -2653,9 +2822,9 @@ def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
         else:
             source = f"🌐 {binding.get('product_title')} (id {binding.get('product_id')})"
         if mail:
-            lines.extend([f'Тип: <b>📧 {MAIL_PRODUCT_TITLE}</b>', 'Режим: <b>🗃 Выдавать из отдельной базы почт</b>', f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Автовыдача FunPay: <b>{_binding_stock_target(binding)}</b> позиций", f"Доступно продаж по источнику: <b>{_binding_effective_stock(binding)}</b>"])
+            lines.extend([f'Тип: <b>📧 {MAIL_PRODUCT_TITLE}</b>', 'Режим: <b>🗃 Выдавать из отдельной базы почт</b>', f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Автовыдача FunPay: <b>{_binding_stock_target(binding)}</b> позиций", f"Доступно продаж по источнику: <b>{_binding_effective_stock_cached(binding) if _binding_effective_stock_cached(binding) is not None else '—'}</b>"])
         else:
-            lines.extend([f"Режим: <b>{'🗃 Выдавать из базы' if mode == 'database' else '🌐 Покупать при заказе'}</b>", f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Автовыдача FunPay: <b>{_binding_stock_target(binding)}</b> позиций", f"Доступно продаж по источнику: <b>{_binding_effective_stock(binding)}</b>"])
+            lines.extend([f"Режим: <b>{'🗃 Выдавать из базы' if mode == 'database' else '🌐 Покупать при заказе'}</b>", f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Автовыдача FunPay: <b>{_binding_stock_target(binding)}</b> позиций", f"Доступно продаж по источнику: <b>{_binding_effective_stock_cached(binding) if _binding_effective_stock_cached(binding) is not None else '—'}</b>"])
     else:
         lines.append('Лот ещё не настроен в плагине. Сначала выберите режим выдачи.')
     state_label = '🟢 Лот: ВКЛ' if lot.get('active', True) else '🔴 Лот: ВЫКЛ'
@@ -2803,13 +2972,7 @@ def _resync_database_lots(database_id: str) -> None:
         _sync_binding_stock(lot_id, binding)
         time.sleep(0.15)
 def _menu_lot_settings(chat_id, message_id=None, page: int=0) -> None:
-    global _last_lot_discovery_ts, _last_lot_discovery_report
     report = _last_lot_discovery_report
-    if cardinal is not None and time.time() - float(_last_lot_discovery_ts or 0) >= 30:
-        try:
-            report = _discover_funpay_lots()
-        except Exception as e:
-            logger.warning(f'{LP} automatic lot discovery: {e}')
     lots = _cached_funpay_lots()
     pages = max(1, (len(lots) + 7) // 8)
     page = max(0, min(int(page), pages - 1))
@@ -3328,7 +3491,7 @@ def _cb_router(call) -> None:
         _show_wait_target(chat_id, message_id, target)
     elif action == 'd4s_main':
         ack()
-        _menu_main(chat_id, message_id, live_balance=True)
+        _menu_main(chat_id, message_id, live_balance=False)
     elif action == 'd4s_account':
         ack()
         _menu_account(chat_id, message_id)
@@ -3636,7 +3799,7 @@ def _cb_router(call) -> None:
             return
         _waiting[chat_id] = {'action': 'lot_set_qty', 'lot_id': arg}
         ack()
-        _tg_send(chat_id, '🔢 Сколько аккаунтов выдавать за 1 единицу заказа? Введите целое число от 1 до 100.', _wait_kb(_waiting[chat_id]))
+        _tg_send(chat_id, f'🔢 Сколько аккаунтов выдавать за 1 единицу заказа? Введите целое число от 1 до {FUNPAY_ORDER_QTY_MAX}.', _wait_kb(_waiting[chat_id]))
     elif action == 'd4s_lot_stock':
         if arg not in _bindings:
             ack('Сначала выберите режим выдачи')
@@ -3726,7 +3889,7 @@ def _cb_router(call) -> None:
     elif action == 'd4s_set_key':
         _waiting[chat_id] = {'action': 'set_key'}
         ack()
-        _tg_send(chat_id, '🔑 Отправьте API-ключ (<code>rk_live_...</code>).\nВзять: @dim4n4ikshop_bot → Профиль → «🔑 API».', _wait_kb(_waiting[chat_id]))
+        _tg_send(chat_id, f'🔑 Отправьте API-ключ (<code>rk_live_...</code>).\nВзять: <a href="{SHOP_BOT_URL}">Steam-бот dim4n4ik</a> → Профиль → «🔑 API».', _wait_kb(_waiting[chat_id]))
     elif action == 'd4s_set_lowbal':
         _waiting[chat_id] = {'action': 'set_lowbal'}
         ack()
@@ -4043,14 +4206,23 @@ def _cb_router(call) -> None:
     elif action == 'd4s_retry':
         with _orders_lock:
             od = _pending.get(arg)
+            already_processed = arg in _processed
         if not od:
             ack('Заказ уже завершён')
+            return
+        if already_processed or str(od.get('step') or '') == 'delivered':
+            ack('Товар уже отмечен выданным')
+            return
+        if od.get('delivery_uncertain') or str(od.get('step') or '') == 'sending':
+            ack('Повтор заблокирован: сначала проверьте чат покупателя')
+            _tg_send(chat_id, f'⚠️ Заказ #{arg}: повторная автоматическая выдача заблокирована, потому что товар мог уже частично или полностью уйти покупателю. Сначала проверьте чат FunPay вручную.')
             return
         if str(od.get('delivery_mode') or 'api') == 'database' and od.get('database_reserved'):
             ack('Сначала проверьте резерв базы вручную')
             return
         ack('Повторяю выдачу...')
         _tg_send(chat_id, f'🔁 Повторяю выдачу по заказу #{arg}...')
+        _log_event('manual_retry', order_id=arg, step=od.get('step'), shop_order_id=od.get('shop_order_id'))
         threading.Thread(target=process_order, args=(arg,), daemon=True).start()
     elif action == 'd4s_refund':
         with _orders_lock:
@@ -4155,8 +4327,8 @@ def _text_handler(m) -> None:
     elif action == 'lot_set_qty':
         try:
             qty = int(text)
-            if qty < 1 or qty > 100:
-                raise ValueError('Введите число от 1 до 100')
+            if qty < 1 or qty > FUNPAY_ORDER_QTY_MAX:
+                raise ValueError(f'Введите число от 1 до {FUNPAY_ORDER_QTY_MAX}')
         except Exception as e:
             _tg_send(chat_id, f'⚠️ {str(e)[:120]}', _wait_kb(st))
             return
@@ -4208,14 +4380,34 @@ def _text_handler(m) -> None:
         if not text.startswith('rk_'):
             _tg_send(chat_id, '⚠️ Ключ должен начинаться с <code>rk_</code>. Попробуйте ещё раз.', _wait_kb(st))
             return
-        _waiting.pop(chat_id, None)
-        cfg_set('api_key', text)
+        old_key = str(cfg_get('api_key') or '')
+        with _config_lock:
+            _config['api_key'] = text
         _reset_api_runtime()
         try:
             bal = _refresh_balance()
-            _tg_send(chat_id, f'✅ Ключ сохранён. Баланс: {_fmt_rub_kop(bal)}')
+        except ShopNetworkError:
+            with _config_lock:
+                _config['api_key'] = old_key
+            _reset_api_runtime()
+            _tg_send(chat_id, '❌ Проблема с подключением к API dim4n4ik.shop. API-ключ не сохранён. Проверьте интернет или доступность сервиса и попробуйте ещё раз.', _wait_kb(st))
+            return
+        except ShopApiError as e:
+            with _config_lock:
+                _config['api_key'] = old_key
+            _reset_api_runtime()
+            reason = ERROR_HUMAN.get(e.code, e.message or e.code)
+            _tg_send(chat_id, f'❌ API-ключ не сохранён. Сервис отклонил проверку: {reason}', _wait_kb(st))
+            return
         except Exception as e:
-            _tg_send(chat_id, f'⚠️ Ключ сохранён, но проверка не прошла: {str(e)[:120]}')
+            with _config_lock:
+                _config['api_key'] = old_key
+            _reset_api_runtime()
+            _tg_send(chat_id, f'❌ Не удалось проверить подключение к API. API-ключ не сохранён: {str(e)[:120]}', _wait_kb(st))
+            return
+        cfg_set('api_key', text)
+        _waiting.pop(chat_id, None)
+        _tg_send(chat_id, f'✅ API-ключ добавлен. Баланс: {_fmt_rub_kop(bal)}')
         _menu_account(chat_id)
     elif action == 'set_lowbal':
         try:
@@ -4314,9 +4506,11 @@ def _text_handler(m) -> None:
             qty = 1
         else:
             try:
-                qty = max(int(text), 1)
+                qty = int(text)
+                if qty < 1 or qty > FUNPAY_ORDER_QTY_MAX:
+                    raise ValueError
             except Exception:
-                _tg_send(chat_id, '⚠️ Отправьте число или <code>-</code>.', _wait_kb(st))
+                _tg_send(chat_id, f'⚠️ Отправьте число от 1 до {FUNPAY_ORDER_QTY_MAX} или <code>-</code>.', _wait_kb(st))
                 return
         st['qty'] = qty
         st['mode'] = 'create'
@@ -4338,14 +4532,17 @@ def _text_handler(m) -> None:
         _menu_bindings(chat_id)
     elif action == 'bind_setqty':
         try:
-            qty = max(int(text), 1)
+            qty = int(text)
+            if qty < 1 or qty > FUNPAY_ORDER_QTY_MAX:
+                raise ValueError
         except Exception:
-            _tg_send(chat_id, '⚠️ Отправьте целое число.', _wait_kb(st))
+            _tg_send(chat_id, f'⚠️ Отправьте целое число от 1 до {FUNPAY_ORDER_QTY_MAX}.', _wait_kb(st))
             return
         _waiting.pop(chat_id, None)
         with _bindings_lock:
             if st['lot_id'] in _bindings:
                 _bindings[st['lot_id']]['qty'] = qty
+                _bindings[st['lot_id']]['qty_per_unit'] = qty
                 _save_bindings()
         _tg_send(chat_id, f"✅ Кол-во для лота {st['lot_id']}: ×{qty}")
         _menu_bindings(chat_id)
@@ -4486,12 +4683,17 @@ def _register_telegram_handlers(c) -> None:
     except Exception as e:
         logger.warning(f'{LP} cannot register /d4shop: {e}')
     def _cb_safe(call):
+        data = str(getattr(call, 'data', None) or '')
+        chat_id = getattr(getattr(getattr(call, 'message', None), 'chat', None), 'id', None)
+        started = time.monotonic()
+        _log_event('telegram_callback', action=data[:160], chat_id=chat_id)
         try:
             _cb_router(call)
+            _log_event('telegram_callback_done', action=data[:160], chat_id=chat_id, ms=int((time.monotonic() - started) * 1000))
         except Exception as e:
-            logger.error(f'{LP} callback error: {e}')
+            _log_event('telegram_callback_error', level=logging.ERROR, action=data[:160], chat_id=chat_id, error=str(e)[:200], ms=int((time.monotonic() - started) * 1000))
+            logger.exception(f'{LP} callback error: {e}')
             try:
-                chat_id = getattr(getattr(getattr(call, 'message', None), 'chat', None), 'id', None)
                 if chat_id:
                     _tg_send(chat_id, f'❌ Ошибка: {str(e)[:100]}')
             except Exception:
@@ -4545,7 +4747,10 @@ def d4s_pre_init(c, *args) -> None:
             _config.update({k: v for k, v in cfg.items() if k in DEFAULT_CONFIG})
             messages = dict(DEFAULT_BUYER_MESSAGES)
             if isinstance(cfg.get('buyer_messages'), dict):
-                messages.update({str(k): str(v) for k, v in cfg['buyer_messages'].items() if k in messages})
+                raw_messages = cfg['buyer_messages']
+                messages.update({str(k): str(v) for k, v in raw_messages.items() if k in messages})
+                if str(raw_messages.get('goods_header') or '') == LEGACY_DEFAULT_GOODS_HEADER:
+                    messages['goods_header'] = DEFAULT_BUYER_MESSAGES['goods_header']
             _config['buyer_messages'] = messages
         if not isinstance(_config.get('lot_cache'), list):
             _config['lot_cache'] = []
@@ -4580,30 +4785,7 @@ def d4s_pre_init(c, *args) -> None:
         logger.warning(f'{LP} add_telegram_commands: {e}')
     if bot:
         _register_telegram_handlers(c)
-    restarted = 0
-    held_database = []
-    with _orders_lock:
-        for oid, od in list(_pending.items()):
-            age = time.time() - float(od.get('created_at', 0))
-            if age > 172800:
-                od['step'] = 'failed'
-                od.setdefault('error', 'просрочен после рестарта (>48ч)')
-                continue
-            if str(od.get('delivery_mode') or 'api') == 'database' and od.get('database_reserved'):
-                held_database.append(str(oid))
-                continue
-            if od.get('step') in ('processing', 'delivering', 'manual_check', 'new'):
-                restarted += 1
-                threading.Thread(target=process_order, args=(oid,), daemon=True).start()
-        _save_orders_state()
-    if restarted:
-        logger.info(f'{LP} restarted {restarted} unfinished order(s) after restart')
-        _notify_admin(f'🔄 После рестарта возобновлено заказов: {restarted}', etype=None)
-    if held_database:
-        for oid in held_database[:20]:
-            with _orders_lock:
-                od = dict(_pending.get(oid) or {})
-            _notify_admin(f"⚠️ <b>Заказ #{oid}: резерв базы после рестарта</b>\n📦 {od.get('product_title') or 'товар'} ×{od.get('qty', 1)}\n\nАвтоматическая повторная выдача заблокирована, чтобы не отправить аккаунт дважды. Проверьте чат покупателя и выберите действие.", keyboard=_database_manual_resolution_kb(oid), etype=None)
+    _recover_pending_orders_after_restart()
     start_background_loops()
     logger.info(f'{LP} initialized')
 def on_delete(*args) -> None:
@@ -4615,6 +4797,7 @@ def on_delete(*args) -> None:
     except Exception:
         pass
     logger.info(f'{LP} plugin delete: state saved')
+    _close_file_logging()
 BIND_TO_PRE_INIT = [d4s_pre_init]
 BIND_TO_NEW_ORDER = [handle_new_order]
 BIND_TO_NEW_MESSAGE = [handle_new_message]
