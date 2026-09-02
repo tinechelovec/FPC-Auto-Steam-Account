@@ -2142,15 +2142,15 @@ def _plugin_home(chat_id, message_id=None) -> None:
     kb = _make_kb([[('⚙️ Настройки', 'd4s_main'), ('ℹ️ Информация', 'd4s_info')], [('⬆️ Обновить плагин', 'd4s_update'), ('🗑 Удалить', 'd4s_delete_ask')], [('🔙 К списку плагинов', CB_PLUGINS_LIST_OPEN)]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _plugin_info(chat_id, message_id=None) -> None:
-    text = 'ℹ️ <b>Информация</b>\n\nСлева — официальный сервис dim4n4ik.shop и его магазины. Справа — разработчик плагина, поддержка, чат, канал и GitHub.\n\n🎮 Steam-аккаунты — через Steam-магазин.\n📧 Почты — через отдельный магазин почт.\n\n👤 Создатель сервиса: @dmitry_mak09\n👨‍💻 Разработчик плагина: @tinechelovec'
+    text = 'ℹ️ <b>Информация</b>\n\nСлева — официальный сервис dim4n4ik.shop и его магазины. Справа — чат, канал и GitHub плагина.\n\n🎮 Steam-аккаунты — через Steam-магазин.\n📧 Почты — через отдельный магазин почт.\n\n👤 Создатель сервиса: @dmitry_mak09\n👨‍💻 Разработчик плагина: @tinechelovec'
     if tg_types:
         kb = tg_types.InlineKeyboardMarkup()
         kb.row(tg_types.InlineKeyboardButton('📖 Инструкция', url=INSTRUCTION_URL), tg_types.InlineKeyboardButton('📚 GitHub-инструкция', url=ALT_INSTRUCTION_URL))
-        kb.row(tg_types.InlineKeyboardButton('🎮 Steam-магазин', url=SHOP_BOT_URL), tg_types.InlineKeyboardButton('👨‍💻 Разработчик', url=CREATOR_URL))
-        kb.row(tg_types.InlineKeyboardButton('📧 Почты', url=MAIL_BOT_URL), tg_types.InlineKeyboardButton('💬 Поддержка', url=CREATOR_URL))
-        kb.row(tg_types.InlineKeyboardButton('💬 Чат магазина', url=SHOP_CHAT_URL), tg_types.InlineKeyboardButton('💬 Чат плагина', url=GROUP_URL))
-        kb.row(tg_types.InlineKeyboardButton('🌐 Сайт', url=SHOP_SITE_URL), tg_types.InlineKeyboardButton('📢 Канал', url=CHANNEL_URL))
-        kb.row(tg_types.InlineKeyboardButton('👤 Создатель сервиса', url=ORIGINAL_AUTHOR_URL), tg_types.InlineKeyboardButton('💻 GitHub', url=GITHUB_URL))
+        kb.row(tg_types.InlineKeyboardButton('🎮 Steam-магазин', url=SHOP_BOT_URL), tg_types.InlineKeyboardButton('💬 Чат плагина', url=GROUP_URL))
+        kb.row(tg_types.InlineKeyboardButton('📧 Почты', url=MAIL_BOT_URL), tg_types.InlineKeyboardButton('📢 Канал', url=CHANNEL_URL))
+        kb.row(tg_types.InlineKeyboardButton('💬 Чат магазина', url=SHOP_CHAT_URL), tg_types.InlineKeyboardButton('💻 GitHub', url=GITHUB_URL))
+        kb.row(tg_types.InlineKeyboardButton('🌐 Сайт', url=SHOP_SITE_URL))
+        kb.row(tg_types.InlineKeyboardButton('👤 Создатель сервиса', url=ORIGINAL_AUTHOR_URL), tg_types.InlineKeyboardButton('👨‍💻 Разработчик', url=CREATOR_URL))
         kb.row(tg_types.InlineKeyboardButton('◀️ Назад', callback_data='d4s_home'))
     else:
         kb = None
