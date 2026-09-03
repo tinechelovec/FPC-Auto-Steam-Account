@@ -23,7 +23,7 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.0.1'
+VERSION = '1.0.2'
 DESCRIPTION = 'Авто-закупка и выдача Steam-аккаунтов, а также выдача почт из локальных баз на FunPay'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
@@ -1504,6 +1504,9 @@ def _copy_lot(source_lot_id: str, product_id: int, dst_product_title: str, qty: 
         _save_bindings()
     _apply_lot_sync(new_lot_id, int(product_id))
     return (new_lot_id, lf.title_ru if new_title else dst_product_title, region_note or None, None)
+def _configured_bindings() -> Dict[str, Dict[str, Any]]:
+    with _bindings_lock:
+        return {str(k): _normalize_binding(v) for k, v in _bindings.items() if isinstance(v, dict)}
 def _enabled_bindings() -> Dict[str, Dict[str, Any]]:
     with _bindings_lock:
         return {str(k): _normalize_binding(v) for k, v in _bindings.items() if isinstance(v, dict) and v.get('enabled', True)}
@@ -1572,7 +1575,7 @@ def _binding_exact_titles(bindings: Dict[str, Dict[str, Any]]) -> Dict[str, set]
                 result[str(key)].add(text)
     return result
 def _find_binding(order, event) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
-    bindings = _enabled_bindings()
+    bindings = _configured_bindings()
     if not bindings:
         return (None, None)
     oid = str(_object_value(order, 'id') or '')
@@ -1627,7 +1630,8 @@ def _find_binding(order, event) -> Tuple[Optional[str], Optional[Dict[str, Any]]
             key = matches[0]
             logger.info(f'{LP} #{oid or "?"} matched lot={key} source=normalized_title')
             return (key, bindings[key])
-    logger.info(f'{LP} #{oid or "?"} binding not found: lot_ids={seen_ids or "none"} title={title[:160] or "none"}')
+    _log_event('binding_miss', order_id=oid or '?', candidate_lot_ids=','.join(seen_ids) if seen_ids else 'none', configured_lot_ids=','.join(sorted(bindings.keys())) if bindings else 'none', title=title[:160] or 'none')
+    logger.info(f'{LP} #{oid or "?"} binding not found: lot_ids={seen_ids or "none"} configured={list(bindings.keys()) or "none"} title={title[:160] or "none"}')
     return (None, None)
 def handle_new_order(cardinal_obj, event, *args) -> None:
     global cardinal
@@ -2026,7 +2030,7 @@ def handle_new_message(cardinal_obj, event, *args) -> None:
     with _orders_lock:
         if oid in _processed or oid in _pending or oid in _seen or (oid in _rejected):
             return
-    if not _enabled_bindings():
+    if not _configured_bindings():
         return
     try:
         full = cardinal.account.get_order(oid)
