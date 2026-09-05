@@ -23,7 +23,7 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.0.2'
+VERSION = '1.0.3'
 DESCRIPTION = 'Авто-закупка и выдача Steam-аккаунтов, а также выдача почт из локальных баз на FunPay'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
@@ -133,18 +133,11 @@ def _migration_normalize_binding(value: Any) -> Dict[str, Any]:
         qty = max(1, min(FUNPAY_ORDER_QTY_MAX, int(b.get('qty_per_unit', b.get('qty', 1)) or 1)))
     except Exception:
         qty = 1
-    target_raw = b.get('fp_stock_target')
-    if target_raw is None:
-        target_raw = 25 if b.get('fp_auto') else 0
-    try:
-        target = max(0, min(500, int(target_raw or 0)))
-    except Exception:
-        target = 0
     b['delivery_mode'] = mode
     b['qty_per_unit'] = qty
     b['qty'] = qty
-    b['fp_stock_target'] = target
-    b['fp_auto'] = target > 0
+    b['fp_stock_target'] = 0
+    b['fp_auto'] = False
     b['enabled'] = bool(b.get('enabled', True))
     b['database_id'] = str(b.get('database_id') or '') if mode == 'database' else ''
     return b
@@ -1255,7 +1248,6 @@ def _set_lot_active(lot_id: str, active: bool) -> bool:
             logger.warning(f'{LP} set_lot_active({lot_id},{active}) attempt {attempt + 1}: {e}')
             time.sleep(3 * (attempt + 1))
     return False
-STUB_SECRET = 'Оплачено ✅ Ваш аккаунт придёт в этот чат в течение минуты.'
 FP_AUTO_BUFFER = 25
 def _fp_buffer() -> int:
     try:
@@ -1303,54 +1295,69 @@ def _binding_effective_stock_cached(binding: Dict[str, Any]) -> Optional[int]:
             continue
     return None
 def _sync_binding_stock(lot_id: str, binding: Dict[str, Any]) -> Tuple[bool, int]:
-    effective = _binding_effective_stock(binding, max_age=30.0)
-    limit = _binding_stock_target(binding)
-    target = min(effective, limit) if limit > 0 else 0
+    effective = max(0, int(_binding_effective_stock(binding, max_age=30.0) or 0))
+    auto = bool(cfg_get('auto_lots_by_stock'))
     for attempt in range(4):
         try:
             lf = cardinal.account.get_lot_fields(int(lot_id))
-            cur = len(getattr(lf, 'secrets', None) or [])
-            if target >= 1:
-                if getattr(lf, 'auto_delivery', False) and cur == target and getattr(lf, 'active', True):
-                    return (True, target)
-                lf.auto_delivery = True
-                lf.secrets = [STUB_SECRET] * target
-                lf.active = True
-            else:
-                if limit > 0:
-                    lf.auto_delivery = False
-                    lf.secrets = []
-                if bool(cfg_get('auto_lots_by_stock')) and effective <= 0:
-                    lf.active = False
-            cardinal.account.save_lot(lf)
-            return (True, target)
+            changed = False
+            if bool(getattr(lf, 'auto_delivery', False)):
+                lf.auto_delivery = False
+                changed = True
+            if list(getattr(lf, 'secrets', None) or []):
+                lf.secrets = []
+                changed = True
+            try:
+                current_amount = getattr(lf, 'amount', None)
+            except Exception:
+                current_amount = None
+            if current_amount != effective:
+                lf.amount = effective
+                changed = True
+            if auto:
+                desired_active = effective > 0
+                if bool(getattr(lf, 'active', True)) != desired_active:
+                    lf.active = desired_active
+                    changed = True
+            if changed:
+                cardinal.account.save_lot(lf)
+                _log_event('funpay_manual_stock_synced', lot_id=lot_id, amount=effective)
+            return (True, 0)
         except Exception as e:
-            if target > 1 and 'слишком длинн' in str(e).lower():
-                target = max(1, target // 2)
-                time.sleep(1)
-                continue
             logger.warning(f'{LP} sync binding stock({lot_id}) attempt {attempt + 1}: {e}')
             time.sleep(2 * (attempt + 1))
-    return (False, target)
+    return (False, 0)
 def _sync_fp_stock(lot_id: str, product_id: int) -> Tuple[bool, int]:
     with _bindings_lock:
         existing = dict(_bindings.get(str(lot_id)) or {})
     if existing:
         return _sync_binding_stock(str(lot_id), _normalize_binding(existing))
-    binding = {'delivery_mode': 'api', 'product_id': int(product_id), 'qty_per_unit': 1, 'fp_stock_target': _fp_buffer(), 'fp_auto': True}
+    binding = {'delivery_mode': 'api', 'product_id': int(product_id), 'qty_per_unit': 1, 'fp_stock_target': 0, 'fp_auto': False}
     return _sync_binding_stock(str(lot_id), binding)
 def _disable_fp_autodelivery(lot_id: str) -> bool:
     for attempt in range(3):
         try:
             lf = cardinal.account.get_lot_fields(int(lot_id))
+            if not bool(getattr(lf, 'auto_delivery', False)) and not list(getattr(lf, 'secrets', None) or []):
+                return True
             lf.auto_delivery = False
             lf.secrets = []
             cardinal.account.save_lot(lf)
+            _log_event('funpay_autodelivery_disabled', lot_id=lot_id)
             return True
         except Exception as e:
             logger.warning(f'{LP} disable_fp_ad({lot_id}) attempt {attempt + 1}: {e}')
             time.sleep(2 * (attempt + 1))
     return False
+def _enforce_manual_delivery_all() -> None:
+    with _bindings_lock:
+        lot_ids = [str(lot_id) for lot_id, raw in _bindings.items() if isinstance(raw, dict)]
+    for lot_id in lot_ids:
+        if _stop_event.is_set():
+            return
+        if not _disable_fp_autodelivery(lot_id):
+            _log_event('funpay_autodelivery_disable_failed', level=logging.WARNING, lot_id=lot_id)
+        time.sleep(0.15)
 def _product_stock(product_id: int, max_age: float=60.0) -> int:
     try:
         for it in _get_catalog_cached(max_age=max_age):
@@ -1708,7 +1715,7 @@ def _api_delivery_payload(resp: Dict[str, Any], expected_qty: int) -> Dict[str, 
     except Exception:
         reported_qty = expected_qty
     if files:
-        return {'ok': False, 'final': True, 'values': values, 'reason': f'API вернул файловый товар ({len(files)} файл/файлов). Автовыдача FunPay поддерживает только text/steam value.'}
+        return {'ok': False, 'final': True, 'values': values, 'reason': f'API вернул файловый товар ({len(files)} файл/файлов). Автоматическая выдача плагина поддерживает только text/steam value.'}
     if reported_qty != expected_qty:
         return {'ok': False, 'final': False, 'values': values, 'reason': f'API сообщает qty={reported_qty}, ожидалось {expected_qty}'}
     if len(values) != expected_qty:
@@ -2079,6 +2086,9 @@ def _stock_check_once() -> None:
     changed = False
     for lot_id, binding in bindings.items():
         mode = str(binding.get('delivery_mode') or 'api')
+        sync_ok, _ = _sync_binding_stock(lot_id, binding)
+        if not sync_ok:
+            _log_event('funpay_manual_stock_sync_failed', level=logging.WARNING, lot_id=lot_id)
         source_id = str(binding.get('database_id') or '') if mode == 'database' else str(binding.get('product_id') or '')
         source_key = f'{mode}:{source_id}'
         stock = _binding_source_stock(binding, max_age=30)
@@ -2129,15 +2139,15 @@ def _stock_check_once() -> None:
 def _stock_loop() -> None:
     while not _stop_event.is_set():
         try:
+            _stock_check_once()
+        except Exception as e:
+            logger.warning(f'{LP} stock loop: {e}')
+        try:
             interval = max(float(cfg_get('fp_auto_sync_sec') or 60), 30)
         except Exception:
             interval = 60
         if _stop_event.wait(interval):
             break
-        try:
-            _stock_check_once()
-        except Exception as e:
-            logger.warning(f'{LP} stock loop: {e}')
 def start_background_loops() -> None:
     threading.Thread(target=_balance_loop, daemon=True).start()
     threading.Thread(target=_stock_loop, daemon=True).start()
@@ -2825,10 +2835,13 @@ def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
                 source = f"🗃 {db.get('name')} — {db.get('product_title')}" if db else '🗃 база не найдена'
         else:
             source = f"🌐 {binding.get('product_title')} (id {binding.get('product_id')})"
+        stock_cached = _binding_effective_stock_cached(binding)
+        stock_text = stock_cached if stock_cached is not None else '—'
         if mail:
-            lines.extend([f'Тип: <b>📧 {MAIL_PRODUCT_TITLE}</b>', 'Режим: <b>🗃 Выдавать из отдельной базы почт</b>', f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Автовыдача FunPay: <b>{_binding_stock_target(binding)}</b> позиций", f"Доступно продаж по источнику: <b>{_binding_effective_stock_cached(binding) if _binding_effective_stock_cached(binding) is not None else '—'}</b>"])
+            lines.extend([f'Тип: <b>📧 {MAIL_PRODUCT_TITLE}</b>', 'Режим: <b>🗃 Выдавать из отдельной базы почт</b>', f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Количество на FunPay: <b>{stock_text}</b>", f"Доступно продаж по источнику: <b>{stock_text}</b>"])
         else:
-            lines.extend([f"Режим: <b>{'🗃 Выдавать из базы' if mode == 'database' else '🌐 Покупать при заказе'}</b>", f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Автовыдача FunPay: <b>{_binding_stock_target(binding)}</b> позиций", f"Доступно продаж по источнику: <b>{_binding_effective_stock_cached(binding) if _binding_effective_stock_cached(binding) is not None else '—'}</b>"])
+            fp_delivery = '🔴 выключена — товар выдаёт плагин'
+            lines.extend([f"Режим: <b>{'🗃 Выдавать из базы' if mode == 'database' else '🌐 Покупать при заказе'}</b>", f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Автовыдача FunPay: <b>{fp_delivery}</b>", f"Количество на FunPay: <b>{stock_text}</b>", f"Доступно продаж по источнику: <b>{stock_text}</b>"])
     else:
         lines.append('Лот ещё не настроен в плагине. Сначала выберите режим выдачи.')
     state_label = '🟢 Лот: ВКЛ' if lot.get('active', True) else '🔴 Лот: ВЫКЛ'
@@ -2852,7 +2865,7 @@ def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
                 product_title = str(binding.get('product_title') or 'не выбран')
                 rows.append([(f'🌐 Товар: {product_title[:30]}', f'd4s_lot_mode_api:{lot_id}')])
     if binding:
-        rows.append([('🔢 Количество за покупку', f'd4s_lot_qty:{lot_id}'), ('⚡ Кол-во в автовыдаче', f'd4s_lot_stock:{lot_id}')])
+        rows.append([('🔢 Количество за покупку', f'd4s_lot_qty:{lot_id}')])
     rows.extend([[('🗑 Удалить лот', f'd4s_lot_delete_menu:{lot_id}')], [('🔙 К лотам', 'd4s_lot_set')]])
     _tg_edit(chat_id, message_id, '\n'.join(lines), _make_kb(rows)) if message_id else _tg_send(chat_id, '\n'.join(lines), _make_kb(rows))
 def _menu_lot_type_pick(chat_id, message_id, lot_id: str) -> None:
@@ -2876,9 +2889,10 @@ def _configure_mail_lot(lot_id: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         target = old.get('fp_stock_target') if old else _fp_buffer()
         if int(target or 0) <= 0:
             target = _fp_buffer()
-        binding = {'product_id': 0, 'product_title': MAIL_PRODUCT_TITLE, 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'database', 'database_id': str(db['id']), 'source_type': 'mail', 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': target, 'fp_auto': True}
+        binding = {'product_id': 0, 'product_title': MAIL_PRODUCT_TITLE, 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'database', 'database_id': str(db['id']), 'source_type': 'mail', 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
         _bindings[lot_id] = _normalize_binding(binding)
         _save_bindings()
+    _disable_fp_autodelivery(lot_id)
     return db, _bindings[lot_id]
 def _menu_lot_mode_pick(chat_id, message_id, lot_id: str) -> None:
     with _bindings_lock:
@@ -2928,13 +2942,12 @@ def _configure_lot_api(lot_id: str, product_id: int) -> Dict[str, Any]:
     with _bindings_lock:
         old = _normalize_binding(_bindings.get(str(lot_id)) or {})
         lot = next((x for x in _cached_funpay_lots() if str(x.get('lot_id')) == str(lot_id)), {})
-        binding = {'product_id': int(product_id), 'product_title': str(item.get('title') or f'товар {product_id}'), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'api', 'database_id': '', 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': old.get('fp_stock_target') if old else _fp_buffer()}
-        if int(binding.get('fp_stock_target') or 0) <= 0:
-            binding['fp_stock_target'] = _fp_buffer()
-        binding['fp_auto'] = True
+        binding = {'product_id': int(product_id), 'product_title': str(item.get('title') or f'товар {product_id}'), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'api', 'database_id': '', 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
         _bindings[str(lot_id)] = _normalize_binding(binding)
         _save_bindings()
     _apply_lot_sync(str(lot_id), int(product_id))
+    if not _sync_binding_stock(str(lot_id), _bindings[str(lot_id)])[0]:
+        _log_event('funpay_manual_stock_sync_failed', level=logging.WARNING, lot_id=lot_id)
     return _bindings[str(lot_id)]
 def _configure_lot_database(lot_id: str, database_id: str) -> Dict[str, Any]:
     db = _database_by_id(database_id)
@@ -2949,13 +2962,11 @@ def _configure_lot_database(lot_id: str, database_id: str) -> Dict[str, Any]:
     with _bindings_lock:
         old = _normalize_binding(_bindings.get(str(lot_id)) or {})
         lot = next((x for x in _cached_funpay_lots() if str(x.get('lot_id')) == str(lot_id)), {})
-        target = old.get('fp_stock_target') if old else _fp_buffer()
-        if int(target or 0) <= 0:
-            target = _fp_buffer()
-        binding = {'product_id': int(db['product_id']), 'product_title': str(db['product_title']), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'database', 'database_id': str(database_id), 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': target, 'fp_auto': True}
+        binding = {'product_id': int(db['product_id']), 'product_title': str(db['product_title']), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'database', 'database_id': str(database_id), 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
         _bindings[str(lot_id)] = _normalize_binding(binding)
         _save_bindings()
     _apply_lot_sync(str(lot_id), int(db['product_id']))
+    _sync_binding_stock(str(lot_id), _bindings[str(lot_id)])
     return _bindings[str(lot_id)]
 def _menu_lot_delete_options(chat_id, message_id, lot_id: str) -> None:
     text = f'🗑 <b>Удаление лота {lot_id}</b>\n\nВыберите, что именно удалить.'
@@ -3808,9 +3819,14 @@ def _cb_router(call) -> None:
         if arg not in _bindings:
             ack('Сначала выберите режим выдачи')
             return
-        _waiting[chat_id] = {'action': 'lot_set_stock', 'lot_id': arg}
-        ack()
-        _tg_send(chat_id, '⚡ Сколько позиций максимум держать в автовыдаче FunPay? Введите 0–500. 0 отключает заглушки автовыдачи.', _wait_kb(_waiting[chat_id]))
+        with _bindings_lock:
+            _bindings[arg]['fp_stock_target'] = 0
+            _bindings[arg]['fp_auto'] = False
+            _bindings[arg] = _normalize_binding(_bindings[arg])
+            _save_bindings()
+        threading.Thread(target=_disable_fp_autodelivery, args=(arg,), daemon=True).start()
+        ack('Автовыдача FunPay выключена')
+        _menu_lot_detail(chat_id, message_id, arg)
     elif action == 'd4s_lot_delete_menu':
         ack()
         _menu_lot_delete_options(chat_id, message_id, arg)
@@ -4366,17 +4382,31 @@ def _text_handler(m) -> None:
                 _waiting.pop(chat_id, None)
                 _menu_lot_settings(chat_id)
                 return
-            _bindings[lot_id]['fp_stock_target'] = target
-            _bindings[lot_id]['fp_auto'] = target > 0
-            binding = _normalize_binding(_bindings[lot_id])
-            _bindings[lot_id] = binding
-            _save_bindings()
+            current = _normalize_binding(_bindings[lot_id])
+            if str(current.get('delivery_mode') or 'api') == 'api':
+                _bindings[lot_id]['fp_stock_target'] = 0
+                _bindings[lot_id]['fp_auto'] = False
+                binding = _normalize_binding(_bindings[lot_id])
+                _bindings[lot_id] = binding
+                _save_bindings()
+                api_mode = True
+            else:
+                _bindings[lot_id]['fp_stock_target'] = target
+                _bindings[lot_id]['fp_auto'] = target > 0
+                binding = _normalize_binding(_bindings[lot_id])
+                _bindings[lot_id] = binding
+                _save_bindings()
+                api_mode = False
         _waiting.pop(chat_id, None)
-        if target > 0:
+        if api_mode:
+            threading.Thread(target=_disable_fp_autodelivery, args=(lot_id,), daemon=True).start()
+            _tg_send(chat_id, '✅ Для режима покупки через API автовыдача FunPay принудительно выключена.')
+        elif target > 0:
             threading.Thread(target=_sync_binding_stock, args=(lot_id, binding), daemon=True).start()
+            _tg_send(chat_id, f'✅ Лимит автовыдачи FunPay: {target}.')
         else:
             threading.Thread(target=_disable_fp_autodelivery, args=(lot_id,), daemon=True).start()
-        _tg_send(chat_id, f'✅ Лимит автовыдачи FunPay: {target}.')
+            _tg_send(chat_id, '✅ Автовыдача FunPay выключена.')
         _menu_lot_detail(chat_id, None, lot_id)
     elif action == 'config_import':
         _tg_send(chat_id, '📥 Ожидаю ZIP-файл резервной копии.', _wait_kb(st))
@@ -4789,6 +4819,7 @@ def d4s_pre_init(c, *args) -> None:
         logger.warning(f'{LP} add_telegram_commands: {e}')
     if bot:
         _register_telegram_handlers(c)
+    threading.Thread(target=_enforce_manual_delivery_all, daemon=True).start()
     _recover_pending_orders_after_restart()
     start_background_loops()
     logger.info(f'{LP} initialized')
