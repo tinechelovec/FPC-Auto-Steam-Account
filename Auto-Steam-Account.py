@@ -23,8 +23,8 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.0.3'
-DESCRIPTION = 'Авто-закупка и выдача Steam-аккаунтов, а также выдача почт из локальных баз на FunPay'
+VERSION = '1.1.0'
+DESCRIPTION = 'Авто-закупка и выдача Steam-аккаунтов и Outlook-почт через API или локальные базы на FunPay'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
 _CBT_PLUGIN_SETTINGS = getattr(_CBT, 'PLUGIN_SETTINGS', None) if _CBT else None
@@ -64,10 +64,10 @@ AUTO_DISABLED_FILE = os.path.join(STORAGE_DIR, 'auto_disabled_lots.json')
 DATABASES_META_FILE = os.path.join(STORAGE_DIR, 'databases.json')
 MIGRATION_FILE = os.path.join(STORAGE_DIR, 'migration.json')
 LOG_FILE = os.path.join(LOG_DIR, 'plugin.log')
-DEFAULT_BUYER_MESSAGES: Dict[str, str] = {'payment_received': '➖➖➖➖➖➖➖➖\n✅ Оплата получена! Выдаю товар, обычно это занимает меньше минуты…\n➖➖➖➖➖➖➖➖', 'goods_header': '🚨🚨🚨 ИНСТРУКЦИЯ ПО ВХОДУ В ПОЧТУ 🚨🚨🚨\n\n📧 Вход в почту: https://outlook.office.com/mail/\nДанные форматом:\nлогин стим:пароль стим:почта:пароль от почты\n\n‼️ Для входа в почту используйте ПОСЛЕДНИЕ два значения (после 2-го двоеточия) ‼️\n\n📎 Видеоинструкция гугл диск — https://drive.google.com/file/d/1iIi7BW6eI8Yl4q465jUD-J0BgVqUXcUd/view?usp=sharing', 'goods_footer': '🙏 Проверьте товар и подтвердите заказ:\n{order_url}\n⭐ Будем рады отзыву!\n➖➖➖➖➖➖➖➖', 'refund': '➖➖➖➖➖➖➖➖\n😔 К сожалению, выдать товар по заказу #{order_id} не получилось.\n💸 Деньги возвращены. Приносим извинения!\n➖➖➖➖➖➖➖➖', 'delay': '➖➖➖➖➖➖➖➖\n⏳ Возникла задержка с выдачей заказа #{order_id}.\nПродавец уже уведомлён и решит вопрос в ближайшее время.\n➖➖➖➖➖➖➖➖'}
+DEFAULT_BUYER_MESSAGES: Dict[str, str] = {'payment_received': '➖➖➖➖➖➖➖➖\n✅ Оплата получена! Выдаю товар, обычно это занимает меньше минуты…\n➖➖➖➖➖➖➖➖', 'goods_header': '🚨🚨🚨 ИНСТРУКЦИЯ ПО ВХОДУ В ПОЧТУ 🚨🚨🚨\n\n📧 Вход в почту: https://outlook.office.com/mail/\nДанные форматом:\nлогин стим:пароль стим:почта:пароль от почты\n\n‼️ Для входа в почту используйте ПОСЛЕДНИЕ два значения (после 2-го двоеточия) ‼️\n\n📎 Видеоинструкция гугл диск — https://drive.google.com/file/d/1iIi7BW6eI8Yl4q465jUD-J0BgVqUXcUd/view?usp=sharing', 'mail_goods_header': '📧 Ваши данные Outlook / Hotmail:\n\n📨 Вход: https://outlook.office.com/mail/\nДанные ниже выданы магазином в исходном формате.', 'goods_footer': '🙏 Проверьте товар и подтвердите заказ:\n{order_url}\n⭐ Будем рады отзыву!\n➖➖➖➖➖➖➖➖', 'refund': '➖➖➖➖➖➖➖➖\n😔 К сожалению, выдать товар по заказу #{order_id} не получилось.\n💸 Деньги возвращены. Приносим извинения!\n➖➖➖➖➖➖➖➖', 'delay': '➖➖➖➖➖➖➖➖\n⏳ Возникла задержка с выдачей заказа #{order_id}.\nПродавец уже уведомлён и решит вопрос в ближайшее время.\n➖➖➖➖➖➖➖➖'}
 LEGACY_DEFAULT_GOODS_HEADER = '✅ Ваш товар по заказу #{order_id}:'
-BUYER_MESSAGE_LABELS = {'payment_received': 'Оплата получена', 'goods_header': 'Заголовок выдачи', 'goods_footer': 'После выдачи', 'refund': 'Возврат денег', 'delay': 'Задержка / ручная проверка'}
-DEFAULT_CONFIG: Dict[str, Any] = {'api_key': '', 'base_url': 'https://api.dim4n4ik.shop', 'plugin_enabled': True, 'auto_refund_enabled': False, 'low_balance_threshold_rub': 100.0, 'balance_check_interval_min': 10, 'notifications_enabled': True, 'notify_new_order': True, 'notify_success': True, 'notify_failure': True, 'notify_errors': True, 'notify_low_balance': True, 'notify_out_of_stock': True, 'buyer_messages': dict(DEFAULT_BUYER_MESSAGES), 'hidden_categories': None, 'auto_lots_by_stock': True, 'fp_auto_buffer': 25, 'fp_auto_sync_sec': 60, 'loss_protection': True, 'loss_min_margin_percent': 0, 'match_by_title': False, 'lot_cache': [], 'ignored_lot_ids': [], 'mail_catalog_migrated': False}
+BUYER_MESSAGE_LABELS = {'payment_received': 'Оплата получена', 'goods_header': 'Заголовок выдачи Steam', 'mail_goods_header': 'Заголовок выдачи Outlook', 'goods_footer': 'После выдачи', 'refund': 'Возврат денег', 'delay': 'Задержка / ручная проверка'}
+DEFAULT_CONFIG: Dict[str, Any] = {'api_key': '', 'base_url': 'https://api.dim4n4ik.shop', 'steam_api_key': '', 'steam_base_url': 'https://api.dim4n4ik.shop', 'mail_api_key': '', 'mail_base_url': 'https://mailapi.dim4n4ik.shop', 'plugin_enabled': True, 'auto_refund_enabled': False, 'low_balance_threshold_rub': 100.0, 'balance_check_interval_min': 10, 'notifications_enabled': True, 'notify_new_order': True, 'notify_success': True, 'notify_failure': True, 'notify_errors': True, 'notify_low_balance': True, 'notify_out_of_stock': True, 'buyer_messages': dict(DEFAULT_BUYER_MESSAGES), 'hidden_categories': None, 'auto_lots_by_stock': True, 'auto_reenable_api_lots': True, 'fp_auto_buffer': 25, 'fp_auto_sync_sec': 60, 'loss_protection': True, 'loss_min_margin_percent': 0, 'match_by_title': False, 'lot_cache': [], 'ignored_lot_ids': [], 'mail_catalog_migrated': False}
 DEFAULT_STATS: Dict[str, Any] = {'total_orders': 0, 'total_failed': 0, 'total_qty': 0, 'total_revenue_rub': 0.0, 'total_cost_rub': 0.0, 'items': {}, 'last_order_at': ''}
 _STORAGE_TYPES = {'settings.json': dict, 'bindings.json': dict, 'pending_orders.json': dict, 'processed_orders.json': dict, 'order_log.json': list, 'stats.json': dict, 'auto_disabled_lots.json': dict, 'databases.json': dict}
 FUNPAY_ORDER_QTY_MAX = 10
@@ -121,6 +121,10 @@ def _migration_merge_settings(value: Dict[str, Any]) -> Dict[str, Any]:
         if str(raw_messages.get('goods_header') or '') == LEGACY_DEFAULT_GOODS_HEADER:
             messages['goods_header'] = DEFAULT_BUYER_MESSAGES['goods_header']
     merged['buyer_messages'] = messages
+    if not str(merged.get('steam_api_key') or '').strip() and str(value.get('api_key') or '').strip():
+        merged['steam_api_key'] = str(value.get('api_key') or '').strip()
+    if not str(merged.get('steam_base_url') or '').strip():
+        merged['steam_base_url'] = str(value.get('base_url') or 'https://api.dim4n4ik.shop').rstrip('/')
     if not isinstance(merged.get('lot_cache'), list):
         merged['lot_cache'] = []
     return merged
@@ -134,6 +138,9 @@ def _migration_normalize_binding(value: Any) -> Dict[str, Any]:
     except Exception:
         qty = 1
     b['delivery_mode'] = mode
+    default_provider = 'mail' if str(b.get('source_type') or '').lower() == 'mail' else 'steam'
+    provider = str(b.get('api_provider') or default_provider).lower()
+    b['api_provider'] = provider if provider in ('steam', 'mail') else default_provider
     b['qty_per_unit'] = qty
     b['qty'] = qty
     b['fp_stock_target'] = 0
@@ -341,6 +348,7 @@ cardinal = None
 bot = None
 admin_chat_id: Optional[int] = None
 shop_client: Optional['ShopClient'] = None
+_provider_clients: Dict[str, Optional['ShopClient']] = {'steam': None, 'mail': None}
 _config: Dict[str, Any] = {}
 _bindings: Dict[str, Dict[str, Any]] = {}
 _pending: Dict[str, Dict[str, Any]] = {}
@@ -357,9 +365,14 @@ _stop_event = threading.Event()
 _waiting: Dict[int, Dict[str, Any]] = {}
 _last_balance_kop: Optional[int] = None
 _last_balance_ts: float = 0.0
+_mail_last_balance_kop: Optional[int] = None
+_mail_last_balance_ts: float = 0.0
 _low_balance_alerted = False
+_mail_low_balance_alerted = False
 _oos_alerted: set = set()
 _catalog_cache: Dict[str, Any] = {'ts': 0.0, 'items': []}
+_mail_catalog_cache: Dict[str, Any] = {'ts': 0.0, 'items': []}
+_provider_catalog_cache: Dict[str, Dict[str, Any]] = {'steam': _catalog_cache, 'mail': _mail_catalog_cache}
 _auto_disabled: Dict[str, Any] = {}
 _ok_strikes: Dict[str, int] = {}
 _grp_select: Dict[int, Dict[str, Any]] = {}
@@ -444,17 +457,37 @@ def _buyer_message(key: str, **values: Any) -> str:
         return template.format(**context)
     except Exception:
         return DEFAULT_BUYER_MESSAGES.get(key, '').format(**context)
-def _reset_api_runtime() -> None:
-    global shop_client, _last_balance_kop, _last_balance_ts, _low_balance_alerted
-    shop_client = None
-    _last_balance_kop = None
-    _last_balance_ts = 0.0
-    _low_balance_alerted = False
-    _catalog_cache['ts'] = 0.0
-    _catalog_cache['items'] = []
-def _clear_api_key() -> None:
-    cfg_set('api_key', '')
-    _reset_api_runtime()
+def _provider_name(provider: str) -> str:
+    return 'mail' if str(provider or '').lower() == 'mail' else 'steam'
+def _provider_key_name(provider: str) -> str:
+    return 'mail_api_key' if _provider_name(provider) == 'mail' else 'steam_api_key'
+def _provider_base_name(provider: str) -> str:
+    return 'mail_base_url' if _provider_name(provider) == 'mail' else 'steam_base_url'
+def _provider_bot_url(provider: str) -> str:
+    return MAIL_BOT_URL if _provider_name(provider) == 'mail' else SHOP_BOT_URL
+def _reset_api_runtime(provider: Optional[str]=None) -> None:
+    global shop_client, _last_balance_kop, _last_balance_ts, _mail_last_balance_kop, _mail_last_balance_ts, _low_balance_alerted, _mail_low_balance_alerted
+    providers = [_provider_name(provider)] if provider else ['steam', 'mail']
+    for name in providers:
+        _provider_clients[name] = None
+        cache = _provider_catalog_cache[name]
+        cache['ts'] = 0.0
+        cache['items'] = []
+        if name == 'steam':
+            shop_client = None
+            _last_balance_kop = None
+            _last_balance_ts = 0.0
+            _low_balance_alerted = False
+        else:
+            _mail_last_balance_kop = None
+            _mail_last_balance_ts = 0.0
+            _mail_low_balance_alerted = False
+def _clear_api_key(provider: str='steam') -> None:
+    name = _provider_name(provider)
+    cfg_set(_provider_key_name(name), '')
+    if name == 'steam':
+        cfg_set('api_key', '')
+    _reset_api_runtime(name)
 def _normalize_binding(value: Any) -> Dict[str, Any]:
     b = _migration_normalize_binding(value)
     if b.get('delivery_mode') == 'database' and not b.get('database_id'):
@@ -891,14 +924,15 @@ def _load_stats() -> Dict[str, Any]:
     for k, v in DEFAULT_STATS.items():
         stats.setdefault(k, v if not isinstance(v, dict) else {})
     return stats
-def _record_sale(product_id: int, title: str, qty: int, revenue_rub: float, cost_rub: float) -> None:
+def _record_sale(product_id: int, title: str, qty: int, revenue_rub: float, cost_rub: float, provider: str='steam') -> None:
     with _stats_lock:
         stats = _load_stats()
         stats['total_orders'] += 1
         stats['total_qty'] += qty
         stats['total_revenue_rub'] = round(stats['total_revenue_rub'] + revenue_rub, 2)
         stats['total_cost_rub'] = round(stats['total_cost_rub'] + cost_rub, 2)
-        item = stats['items'].setdefault(str(product_id), {'title': title, 'orders': 0, 'qty': 0})
+        item_key = f'{_provider_name(provider)}:{int(product_id)}'
+        item = stats['items'].setdefault(item_key, {'title': title, 'orders': 0, 'qty': 0, 'provider': _provider_name(provider), 'product_id': int(product_id)})
         item['title'] = title
         item['orders'] += 1
         item['qty'] += qty
@@ -945,6 +979,19 @@ def _tg_edit(chat_id, message_id, text: str, reply_markup=None) -> None:
         bot.edit_message_text(text, int(chat_id), int(message_id), parse_mode='HTML', reply_markup=reply_markup, disable_web_page_preview=True)
     except Exception:
         _tg_send(chat_id, text, reply_markup)
+def _delete_user_message(message) -> bool:
+    if not bot or message is None:
+        return False
+    chat_id = getattr(getattr(message, 'chat', None), 'id', None)
+    message_id = getattr(message, 'message_id', None)
+    if chat_id is None or message_id is None:
+        return False
+    try:
+        bot.delete_message(int(chat_id), int(message_id))
+        return True
+    except Exception as e:
+        logger.warning(f'{LP} delete user message({chat_id},{message_id}): {e}')
+        return False
 def _make_kb(rows: List[List[Tuple[str, str]]]):
     if not tg_types:
         return None
@@ -1006,9 +1053,10 @@ def _mark_order_delivered(order_id: str) -> None:
         _processed[oid] = time.time()
         _save_orders_state()
     _log_event('order_delivered_marker', order_id=oid)
-def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: List[str], product_title: str='', qty: int=0) -> Dict[str, Any]:
+def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: List[str], product_title: str='', qty: int=0, api_provider: str='steam') -> Dict[str, Any]:
     order_url = f'https://funpay.com/orders/{order_id}/'
-    header = _buyer_message('goods_header', order_id=order_id, order_url=order_url, product_title=product_title, qty=qty)
+    header_key = 'mail_goods_header' if _provider_name(api_provider) == 'mail' else 'goods_header'
+    header = _buyer_message(header_key, order_id=order_id, order_url=order_url, product_title=product_title, qty=qty)
     chunks: List[str] = []
     cur: List[str] = []
     cur_len = 0
@@ -1121,34 +1169,48 @@ class ShopClient:
         return self._request('POST', '/v1/orders', body={'product_id': int(product_id), 'qty': int(qty)}, idem_key=idem_key, timeout=200, max_attempts=4)
     def get_order(self, order_id: int) -> dict:
         return self._request('GET', f'/v1/orders/{int(order_id)}', timeout=60)
-def _get_client() -> Optional[ShopClient]:
+def _get_client(provider: str='steam') -> Optional[ShopClient]:
     global shop_client
-    key = cfg_get('api_key')
-    base = (cfg_get('base_url') or 'https://api.dim4n4ik.shop').rstrip('/')
+    name = _provider_name(provider)
+    legacy_key = cfg_get('api_key') if name == 'steam' else ''
+    key = str(cfg_get(_provider_key_name(name)) or legacy_key or '').strip()
+    legacy_base = cfg_get('base_url') if name == 'steam' else ''
+    base = str(cfg_get(_provider_base_name(name)) or legacy_base or ('https://mailapi.dim4n4ik.shop' if name == 'mail' else 'https://api.dim4n4ik.shop')).rstrip('/')
     if not key:
         return None
-    if shop_client is None or shop_client.api_key != key or shop_client.base_url != base:
-        shop_client = ShopClient(key, base)
-    return shop_client
-def _get_catalog_cached(max_age: float=60.0) -> List[dict]:
-    client = _get_client()
+    client = _provider_clients.get(name)
+    if client is None or client.api_key != key or client.base_url != base:
+        client = ShopClient(key, base)
+        _provider_clients[name] = client
+    if name == 'steam':
+        shop_client = client
+    return client
+def _get_catalog_cached(max_age: float=60.0, provider: str='steam') -> List[dict]:
+    name = _provider_name(provider)
+    client = _get_client(name)
     if client is None:
         return []
+    cache = _provider_catalog_cache[name]
     now = time.time()
-    if now - _catalog_cache['ts'] < max_age and _catalog_cache['items']:
-        return _catalog_cache['items']
+    if now - cache['ts'] < max_age and cache['items']:
+        return cache['items']
     items = client.get_catalog()
-    _catalog_cache['ts'] = now
-    _catalog_cache['items'] = items
+    cache['ts'] = now
+    cache['items'] = items
     return items
-def _refresh_balance() -> Optional[int]:
-    global _last_balance_kop, _last_balance_ts
-    client = _get_client()
+def _refresh_balance(provider: str='steam') -> Optional[int]:
+    global _last_balance_kop, _last_balance_ts, _mail_last_balance_kop, _mail_last_balance_ts
+    name = _provider_name(provider)
+    client = _get_client(name)
     if client is None:
         return None
     bal = client.get_balance_kop()
-    _last_balance_kop = bal
-    _last_balance_ts = time.time()
+    if name == 'steam':
+        _last_balance_kop = bal
+        _last_balance_ts = time.time()
+    else:
+        _mail_last_balance_kop = bal
+        _mail_last_balance_ts = time.time()
     return bal
 NO_CATEGORY = 'Без категории'
 NO_GROUP = 'Без группы'
@@ -1275,7 +1337,7 @@ def _binding_source_stock(binding: Dict[str, Any], max_age: float=60.0) -> int:
             return 0
         return _database_stock(database_id)
     try:
-        return _product_stock(int(binding.get('product_id')), max_age=max_age)
+        return _product_stock(int(binding.get('product_id')), max_age=max_age, provider=str(binding.get('api_provider') or 'steam'))
     except Exception:
         return 0
 def _binding_effective_stock(binding: Dict[str, Any], max_age: float=60.0) -> int:
@@ -1287,7 +1349,8 @@ def _binding_effective_stock_cached(binding: Dict[str, Any]) -> Optional[int]:
         pid = int(binding.get('product_id'))
     except Exception:
         return None
-    for item in list(_catalog_cache.get('items') or []):
+    cache = _provider_catalog_cache[_provider_name(str(binding.get('api_provider') or 'steam'))]
+    for item in list(cache.get('items') or []):
         try:
             if int(item.get('id', -1)) == pid:
                 return max(0, int(item.get('in_stock', 0)) // _binding_qty_per_unit(binding))
@@ -1296,7 +1359,6 @@ def _binding_effective_stock_cached(binding: Dict[str, Any]) -> Optional[int]:
     return None
 def _sync_binding_stock(lot_id: str, binding: Dict[str, Any]) -> Tuple[bool, int]:
     effective = max(0, int(_binding_effective_stock(binding, max_age=30.0) or 0))
-    auto = bool(cfg_get('auto_lots_by_stock'))
     for attempt in range(4):
         try:
             lf = cardinal.account.get_lot_fields(int(lot_id))
@@ -1314,19 +1376,14 @@ def _sync_binding_stock(lot_id: str, binding: Dict[str, Any]) -> Tuple[bool, int
             if current_amount != effective:
                 lf.amount = effective
                 changed = True
-            if auto:
-                desired_active = effective > 0
-                if bool(getattr(lf, 'active', True)) != desired_active:
-                    lf.active = desired_active
-                    changed = True
             if changed:
                 cardinal.account.save_lot(lf)
-                _log_event('funpay_manual_stock_synced', lot_id=lot_id, amount=effective)
-            return (True, 0)
+                _log_event('funpay_manual_stock_synced', lot_id=lot_id, amount=effective, provider=binding.get('api_provider'))
+            return (True, effective)
         except Exception as e:
             logger.warning(f'{LP} sync binding stock({lot_id}) attempt {attempt + 1}: {e}')
             time.sleep(2 * (attempt + 1))
-    return (False, 0)
+    return (False, effective)
 def _sync_fp_stock(lot_id: str, product_id: int) -> Tuple[bool, int]:
     with _bindings_lock:
         existing = dict(_bindings.get(str(lot_id)) or {})
@@ -1358,17 +1415,17 @@ def _enforce_manual_delivery_all() -> None:
         if not _disable_fp_autodelivery(lot_id):
             _log_event('funpay_autodelivery_disable_failed', level=logging.WARNING, lot_id=lot_id)
         time.sleep(0.15)
-def _product_stock(product_id: int, max_age: float=60.0) -> int:
+def _product_stock(product_id: int, max_age: float=60.0, provider: str='steam') -> int:
     try:
-        for it in _get_catalog_cached(max_age=max_age):
+        for it in _get_catalog_cached(max_age=max_age, provider=provider):
             if int(it.get('id', -1)) == int(product_id):
                 return int(it.get('in_stock', 0))
     except Exception:
         pass
     return 0
-def _product_price_kop(product_id: int, max_age: float=60.0) -> int:
+def _product_price_kop(product_id: int, max_age: float=60.0, provider: str='steam') -> int:
     try:
-        for it in _get_catalog_cached(max_age=max_age):
+        for it in _get_catalog_cached(max_age=max_age, provider=provider):
             if int(it.get('id', -1)) == int(product_id):
                 return int(it.get('price_kop', 0))
     except Exception:
@@ -1677,6 +1734,7 @@ def handle_new_order(cardinal_obj, event, *args) -> None:
     per_sale = _binding_qty_per_unit(binding)
     qty = per_sale * amount
     mode = str(binding.get('delivery_mode') or 'api')
+    provider = _provider_name(str(binding.get('api_provider') or 'steam'))
     database_id = str(binding.get('database_id') or '')
     product_id = int(binding.get('product_id') or 0)
     product_title = str(binding.get('product_title') or f'товар {product_id}')
@@ -1691,12 +1749,12 @@ def handle_new_order(cardinal_obj, event, *args) -> None:
         currency = str(getattr(cur, 'code', None) or cur or '').lower()
     except Exception:
         pass
-    od = {'order_id': oid, 'lot_key': key, 'delivery_mode': mode, 'database_id': database_id, 'product_id': product_id, 'product_title': product_title, 'qty_per_unit': per_sale, 'fp_stock_target': _binding_stock_target(binding), 'qty': qty, 'amount': amount, 'price_rub': _parse_price(getattr(order, 'price', None) if getattr(order, 'price', None) is not None else getattr(order, 'sum', None)), 'currency': currency, 'buyer': getattr(order, 'buyer_username', None) or '', 'chat_id': getattr(order, 'chat_id', None), 'step': 'processing', 'attempt': 0, 'idem_key': f'fp-{oid}', 'shop_order_id': None, 'cost_kop': None, 'error': '', 'created_at': time.time(), 'created_at_str': _now_str()}
+    od = {'order_id': oid, 'lot_key': key, 'delivery_mode': mode, 'api_provider': provider, 'database_id': database_id, 'product_id': product_id, 'product_title': product_title, 'qty_per_unit': per_sale, 'fp_stock_target': _binding_stock_target(binding), 'qty': qty, 'amount': amount, 'price_rub': _parse_price(getattr(order, 'price', None) if getattr(order, 'price', None) is not None else getattr(order, 'sum', None)), 'currency': currency, 'buyer': getattr(order, 'buyer_username', None) or '', 'chat_id': getattr(order, 'chat_id', None), 'step': 'processing', 'attempt': 0, 'idem_key': f'fp-{oid}-{provider}', 'shop_order_id': None, 'cost_kop': None, 'error': '', 'created_at': time.time(), 'created_at_str': _now_str()}
     with _orders_lock:
         _pending[oid] = od
         _seen.discard(oid)
         _save_orders_state()
-    source = 'база' if mode == 'database' else 'API'
+    source = 'база' if mode == 'database' else ('Mail API' if provider == 'mail' else 'Steam API')
     logger.info(f"{LP} #{oid} наш заказ: lot={key} mode={mode} product={product_id} qty={qty} price={od['price_rub']} {currency}")
     _log_event('order_received', order_id=oid, lot_id=key, mode=mode, product_id=product_id, qty=qty, buyer=od['buyer'])
     _notify_admin(f"🛒 <b>Новый заказ #{oid}</b>\n📦 {product_title} ×{qty}\n👤 {od['buyer']}\n🚚 Источник: {source}\n💵 Продажа: {od['price_rub']:.2f} {od['currency'] or '₽'}", etype='new_order')
@@ -1722,13 +1780,14 @@ def _api_delivery_payload(resp: Dict[str, Any], expected_qty: int) -> Dict[str, 
         return {'ok': False, 'final': False, 'values': values, 'reason': f'API вернул {len(values)} текстовых позиций вместо {expected_qty}'}
     return {'ok': True, 'final': True, 'values': values, 'reason': ''}
 def _fulfill_api_order(od: Dict[str, Any]) -> Dict[str, Any]:
-    client = _get_client()
+    provider = _provider_name(str(od.get('api_provider') or 'steam'))
+    client = _get_client(provider)
     if client is None:
-        raise ShopApiError(0, 'no_api_key', 'API-ключ не задан (⚙️ Настройки → Аккаунт dim4n4ik.shop)')
+        raise ShopApiError(0, 'no_api_key', _error_human('no_api_key', provider=provider))
     need = int(od.get('qty', 1) or 1)
     if not od.get('shop_order_id'):
         try:
-            if _product_stock(int(od['product_id'])) < need and _product_stock(int(od['product_id']), max_age=0) < need:
+            if _product_stock(int(od['product_id']), provider=provider) < need and _product_stock(int(od['product_id']), max_age=0, provider=provider) < need:
                 raise ShopApiError(409, 'out_of_stock', 'Товар закончился на складе магазина', {'available': 0})
         except ShopApiError:
             raise
@@ -1737,7 +1796,7 @@ def _fulfill_api_order(od: Dict[str, Any]) -> Dict[str, Any]:
     if not od.get('shop_order_id') and cfg_get('loss_protection'):
         try:
             price_rub = float(od.get('price_rub') or 0)
-            cat_kop = _product_price_kop(int(od['product_id']))
+            cat_kop = _product_price_kop(int(od['product_id']), provider=provider)
             cur = (od.get('currency') or '').lower()
             if cur in ('', 'rub', '₽') and price_rub > 0 and cat_kop > 0:
                 cost_rub = cat_kop * need / 100.0
@@ -1753,16 +1812,16 @@ def _fulfill_api_order(od: Dict[str, Any]) -> Dict[str, Any]:
     if od.get('shop_order_id'):
         resp = client.get_order(od['shop_order_id'])
     else:
-        _log_event('api_purchase_start', order_id=od.get('order_id'), product_id=od.get('product_id'), qty=need)
+        _log_event('api_purchase_start', order_id=od.get('order_id'), provider=provider, product_id=od.get('product_id'), qty=need)
         resp = client.create_order(int(od['product_id']), need, str(od['idem_key']))
-        _catalog_cache['ts'] = 0.0
-        _catalog_cache['items'] = []
+        _provider_catalog_cache[provider]['ts'] = 0.0
+        _provider_catalog_cache[provider]['items'] = []
         with _orders_lock:
             od['shop_order_id'] = resp.get('order_id')
             od['cost_kop'] = resp.get('cost_kop')
             od['step'] = 'purchased'
             _save_orders_state()
-        _log_event('api_purchase_done', order_id=od.get('order_id'), shop_order_id=od.get('shop_order_id'), qty=need, cost_kop=od.get('cost_kop'))
+        _log_event('api_purchase_done', order_id=od.get('order_id'), provider=provider, shop_order_id=od.get('shop_order_id'), qty=need, cost_kop=od.get('cost_kop'))
     check = _api_delivery_payload(resp, need)
     if not check['ok'] and not check['final'] and od.get('shop_order_id'):
         for attempt in range(1, 4):
@@ -1771,7 +1830,7 @@ def _fulfill_api_order(od: Dict[str, Any]) -> Dict[str, Any]:
             if od.get('cost_kop') is None:
                 od['cost_kop'] = resp.get('cost_kop')
             check = _api_delivery_payload(resp, need)
-            _log_event('api_order_refetch', order_id=od.get('order_id'), shop_order_id=od.get('shop_order_id'), attempt=attempt, ready=check['ok'], received=len(check.get('values') or []), expected=need)
+            _log_event('api_order_refetch', order_id=od.get('order_id'), provider=provider, shop_order_id=od.get('shop_order_id'), attempt=attempt, ready=check['ok'], received=len(check.get('values') or []), expected=need)
             if check['ok'] or check['final']:
                 break
     cost_kop = int(od.get('cost_kop') or (resp.get('cost_kop') if isinstance(resp, dict) else 0) or 0)
@@ -1821,7 +1880,7 @@ def process_order(oid: str) -> None:
             current['sending_started_at'] = time.time()
             _save_orders_state()
     _log_event('order_sending', order_id=oid, mode=delivery_mode, qty=len(values))
-    delivery = _send_goods(oid, od['chat_id'], od['buyer'], values, od['product_title'], od['qty'])
+    delivery = _send_goods(oid, od['chat_id'], od['buyer'], values, od['product_title'], od['qty'], str(od.get('api_provider') or 'steam'))
     cost_kop = int(result.get('cost_kop') or 0)
     if not delivery.get('goods_sent'):
         with _orders_lock:
@@ -1851,21 +1910,21 @@ def process_order(oid: str) -> None:
             _notify_admin(f'⚠️ <b>Заказ #{oid}: товар отправлен, но база не обновилась</b>\n{str(e)[:250]}\nРезерв оставлен для ручной проверки.', keyboard=kb, etype='failure')
             return
     _finish_order(oid, 'COMPLETED', cost_kop)
-    _record_sale(int(od.get('product_id') or 0), od['product_title'], int(od['qty']), od['price_rub'] if od['currency'] in ('', 'rub', '₽') else 0.0, cost_kop / 100)
+    _record_sale(int(od.get('product_id') or 0), od['product_title'], int(od['qty']), od['price_rub'] if od['currency'] in ('', 'rub', '₽') else 0.0, cost_kop / 100, str(od.get('api_provider') or 'steam'))
     lot_key = od.get('lot_key')
     with _bindings_lock:
         binding = _normalize_binding(_bindings.get(lot_key or '') or {}) if lot_key else None
-    if binding and lot_key and _binding_stock_target(binding) > 0:
+    if binding and lot_key:
         threading.Thread(target=_sync_binding_stock, args=(str(lot_key), binding), daemon=True).start()
     bal_txt = ''
     if delivery_mode == 'api':
         try:
-            bal = _refresh_balance()
+            bal = _refresh_balance(str(od.get('api_provider') or 'steam'))
             if bal is not None:
                 bal_txt = f'\n💰 Баланс API: {_fmt_rub_kop(bal)}'
         except Exception:
             pass
-    source_txt = '🗃 База аккаунтов' if delivery_mode == 'database' else '🌐 API dim4n4ik.shop'
+    source_txt = '🗃 База аккаунтов' if delivery_mode == 'database' else ('📧 Mail API dim4n4ik.shop' if _provider_name(str(od.get('api_provider') or 'steam')) == 'mail' else '🎮 Steam API dim4n4ik.shop')
     warn = ''
     if delivery_mode == 'api' and od['currency'] in ('', 'rub', '₽') and od['price_rub'] and cost_kop and od['price_rub'] < cost_kop / 100:
         warn = f"\n⚠️ <b>Продано дешевле закупки!</b> ({od['price_rub']:.2f} ₽ &lt; {cost_kop / 100:.2f} ₽) — проверьте цену лота"
@@ -1876,16 +1935,30 @@ def _finish_order(oid: str, status: str, cost_kop: int=0) -> None:
         _processed[oid] = time.time()
         _save_orders_state()
     if od:
-        _append_order_log({'order_id': oid, 'product_id': od['product_id'], 'product_title': od['product_title'], 'qty': od['qty'], 'price_rub': od['price_rub'], 'cost_kop': cost_kop or od.get('cost_kop'), 'shop_order_id': od.get('shop_order_id'), 'buyer': od['buyer'], 'status': status, 'error': od.get('error', ''), 'ts': time.time(), 'ts_str': _now_str()})
+        _append_order_log({'order_id': oid, 'product_id': od['product_id'], 'product_title': od['product_title'], 'qty': od['qty'], 'price_rub': od['price_rub'], 'cost_kop': cost_kop or od.get('cost_kop'), 'shop_order_id': od.get('shop_order_id'), 'api_provider': od.get('api_provider'), 'buyer': od['buyer'], 'status': status, 'error': od.get('error', ''), 'ts': time.time(), 'ts_str': _now_str()})
         if not str(status).startswith('COMPLETED'):
             _record_fail()
     _log_event('order_finished', order_id=oid, status=status, cost_kop=cost_kop)
     logger.info(f'{LP} #{oid} завершён: {status}')
 ERROR_HUMAN = {'insufficient_balance': 'Недостаточно баланса API — пополните: https://t.me/dim4n4ikshop_bot?start=ref7202094913 → Профиль → Пополнить', 'out_of_stock': 'Товар закончился на складе магазина', 'invalid_key': 'API-ключ неверен или отозван — создайте новый: https://t.me/dim4n4ikshop_bot?start=ref7202094913', 'unauthorized': 'API-ключ не принят — проверьте ключ в настройках', 'forbidden': 'У ключа нет прав на покупки — создайте новый ключ', 'not_found': 'Товар не найден в магазине — проверьте привязку', 'quota_exceeded': 'Превышена часовая квота API (1000 шт/час) — попробуйте позже', 'no_api_key': 'API-ключ не задан в настройках плагина', 'qty_limit': 'Слишком большое количество для одного заказа', 'loss_block': 'Цена лота ниже закупки — продажа заблокирована (защита от убытка)', 'database_stock': 'В базе аккаунтов недостаточно товара', 'database_missing': 'База аккаунтов не найдена или удалена'}
+def _error_human(code: str, message: str='', provider: str='steam') -> str:
+    provider = _provider_name(provider)
+    if code == 'insufficient_balance':
+        return f'Недостаточно баланса API — пополните: {_provider_bot_url(provider)} → Профиль → Пополнить'
+    if code == 'invalid_key':
+        return f'API-ключ неверен или отозван — создайте новый: {_provider_bot_url(provider)}'
+    if code == 'no_api_key':
+        return 'Mail API-ключ не задан в настройках плагина' if provider == 'mail' else 'Steam API-ключ не задан в настройках плагина'
+    return ERROR_HUMAN.get(code, message or code)
 BUSINESS_ERRORS = {'insufficient_balance', 'out_of_stock', 'not_found', 'invalid_request'}
 REFUNDABLE = {'insufficient_balance', 'out_of_stock', 'not_found', 'qty_limit', 'loss_block', 'database_stock', 'database_missing'}
 def _fail_order(oid: str, err: ShopApiError) -> None:
-    human = ERROR_HUMAN.get(err.code, err.message or err.code)
+    with _orders_lock:
+        od = _pending.get(oid)
+        if not od:
+            return
+    provider = _provider_name(str(od.get('api_provider') or 'steam'))
+    human = _error_human(err.code, err.message or err.code, provider)
     extra = ''
     if err.code == 'insufficient_balance':
         need = err.extra.get('need_kop')
@@ -1903,7 +1976,7 @@ def _fail_order(oid: str, err: ShopApiError) -> None:
         od['error'] = f'{err.code}: {human}{extra}'
         od['attempt'] = int(od.get('attempt', 0)) + 1
         if err.code in BUSINESS_ERRORS:
-            od['idem_key'] = f"fp-{oid}-r{od['attempt']}"
+            od['idem_key'] = f"fp-{oid}-{provider}-r{od['attempt']}"
         _save_orders_state()
     _log_event('order_failed', level=logging.ERROR, order_id=oid, code=err.code, reason=human + extra, attempt=od['attempt'])
     logger.error(f"{LP} #{oid} закупка не удалась: {od['error']}")
@@ -2050,7 +2123,7 @@ def handle_new_message(cardinal_obj, event, *args) -> None:
     logger.info(f'{LP} #{oid} перехвачен из сообщения (fallback)')
     handle_new_order(cardinal, SimpleNamespace(order=full, lot_id=_object_value(full, 'lot_id'), offer_id=_object_value(full, 'offer_id')))
 def _balance_loop() -> None:
-    global _low_balance_alerted
+    global _low_balance_alerted, _mail_low_balance_alerted
     while not _stop_event.is_set():
         try:
             interval = max(float(cfg_get('balance_check_interval_min') or 10), 1) * 60
@@ -2058,22 +2131,33 @@ def _balance_loop() -> None:
             interval = 600
         if _stop_event.wait(interval):
             break
-        try:
-            if not cfg_get('plugin_enabled'):
+        if not cfg_get('plugin_enabled'):
+            continue
+        for provider in ('steam', 'mail'):
+            if _get_client(provider) is None:
                 continue
-            bal = _refresh_balance()
-            if bal is None:
-                continue
-            threshold = float(cfg_get('low_balance_threshold_rub') or 0) * 100
-            if threshold and bal < threshold and (not _low_balance_alerted):
-                _low_balance_alerted = True
-                _notify_admin(f'⚠️ <b>Низкий баланс API: {_fmt_rub_kop(bal)}</b> (порог {_fmt_rub_kop(int(threshold))})\nПополните: https://t.me/dim4n4ikshop_bot?start=ref7202094913 → Профиль → Пополнить, иначе заказы перестанут выдаваться.', etype='low_balance')
-            elif threshold and bal >= threshold and _low_balance_alerted:
-                _low_balance_alerted = False
-                _notify_admin(f'✅ Баланс API восстановлен: {_fmt_rub_kop(bal)}', etype='low_balance')
-        except Exception as e:
-            logger.warning(f'{LP} balance loop: {e}')
-            _notify_admin(f'⚠️ <b>Ошибка проверки баланса</b>\n{str(e)[:300]}', etype='error')
+            try:
+                bal = _refresh_balance(provider)
+                if bal is None:
+                    continue
+                threshold = float(cfg_get('low_balance_threshold_rub') or 0) * 100
+                alerted = _mail_low_balance_alerted if provider == 'mail' else _low_balance_alerted
+                label = 'Mail API' if provider == 'mail' else 'Steam API'
+                if threshold and bal < threshold and not alerted:
+                    if provider == 'mail':
+                        _mail_low_balance_alerted = True
+                    else:
+                        _low_balance_alerted = True
+                    _notify_admin(f'⚠️ <b>Низкий баланс {label}: {_fmt_rub_kop(bal)}</b> (порог {_fmt_rub_kop(int(threshold))})\nПополните: {_provider_bot_url(provider)} → Профиль → Пополнить.', etype='low_balance')
+                elif threshold and bal >= threshold and alerted:
+                    if provider == 'mail':
+                        _mail_low_balance_alerted = False
+                    else:
+                        _low_balance_alerted = False
+                    _notify_admin(f'✅ Баланс {label} восстановлен: {_fmt_rub_kop(bal)}', etype='low_balance')
+            except Exception as e:
+                logger.warning(f'{LP} balance loop {provider}: {e}')
+                _notify_admin(f'⚠️ <b>Ошибка проверки баланса {provider}</b>\n{str(e)[:300]}', etype='error')
 def _stock_check_once() -> None:
     if not cfg_get('plugin_enabled'):
         return
@@ -2090,7 +2174,8 @@ def _stock_check_once() -> None:
         if not sync_ok:
             _log_event('funpay_manual_stock_sync_failed', level=logging.WARNING, lot_id=lot_id)
         source_id = str(binding.get('database_id') or '') if mode == 'database' else str(binding.get('product_id') or '')
-        source_key = f'{mode}:{source_id}'
+        provider = _provider_name(str(binding.get('api_provider') or 'steam'))
+        source_key = f'database:{source_id}' if mode == 'database' else f'{provider}:{source_id}'
         stock = _binding_source_stock(binding, max_age=30)
         effective = stock // _binding_qty_per_unit(binding)
         source_title = str(binding.get('product_title') or source_id or 'источник')
@@ -2124,7 +2209,7 @@ def _stock_check_once() -> None:
                     _auto_disabled.pop(lot_id, None)
                     enabled_now.append(lot_id)
                     changed = True
-            elif auto and lot_id in _auto_disabled and _ok_strikes[source_key] >= 2:
+            elif auto and lot_id in _auto_disabled and (mode == 'database' or bool(cfg_get('auto_reenable_api_lots'))):
                 if _set_lot_active(lot_id, True):
                     _auto_disabled.pop(lot_id, None)
                     enabled_now.append(lot_id)
@@ -2352,7 +2437,8 @@ def _delete_plugin_from_disk(chat_id, message_id=None) -> None:
 def _wait_target(st: Dict[str, Any]) -> Tuple[str, str]:
     action = st.get('action')
     if action == 'set_key':
-        return '🔙 Назад', 'd4s_account'
+        provider = _provider_name(str(st.get('provider') or 'steam'))
+        return '🔙 Назад', f'd4s_provider:{provider}'
     if action in ('set_lowbal', 'set_balance_interval'):
         return '🔙 Назад', 'd4s_notifications'
     if action == 'set_margin':
@@ -2384,6 +2470,8 @@ def _wait_kb(st: Dict[str, Any]):
 def _show_wait_target(chat_id, message_id, target: str) -> None:
     if target == 'd4s_account':
         _menu_account(chat_id, message_id)
+    elif target.startswith('d4s_provider:'):
+        _menu_provider_account(chat_id, message_id, target.split(':', 1)[1])
     elif target in ('d4s_plugin_set', 'd4s_set'):
         _menu_plugin_settings(chat_id, message_id)
     elif target == 'd4s_notifications':
@@ -2446,20 +2534,37 @@ def _menu_main(chat_id, message_id=None, live_balance: bool=False) -> None:
 def _onoff(key: str) -> str:
     return 'ВКЛ' if cfg_get(key) else 'ВЫКЛ'
 def _menu_account(chat_id, message_id=None) -> None:
-    key = cfg_get('api_key')
-    bal_txt = _fmt_rub_kop(_last_balance_kop) if _last_balance_kop is not None else '—'
-    text = f'🏪 <b>Аккаунт dim4n4ik.shop</b>\n\n🔑 API-ключ: {_mask_key(key)}\n🌐 API: <code>{cfg_get("base_url")}</code>\n💰 Баланс API: <b>{bal_txt}</b>\n\n🎮 Steam-магазин: <a href="{SHOP_BOT_URL}">открыть бота</a>\n📧 Магазин почт: <a href="{MAIL_BOT_URL}">открыть бота</a>\n\nЗдесь можно подключить, заменить или удалить API-ключ магазина.'
-    rows = []
-    if key:
-        rows.append([('🔄 Изменить API-ключ', 'd4s_set_key'), ('🗑 Удалить API-ключ', 'd4s_key_delete_ask')])
-    else:
-        rows.append([('🔑 Добавить API-ключ', 'd4s_set_key')])
-    rows.extend([[('🩺 Проверка API', 'd4s_health')], [('🔙 Назад', 'd4s_main')]])
+    steam_key = str(cfg_get('steam_api_key') or cfg_get('api_key') or '')
+    mail_key = str(cfg_get('mail_api_key') or '')
+    steam_bal = _fmt_rub_kop(_last_balance_kop) if _last_balance_kop is not None else '—'
+    mail_bal = _fmt_rub_kop(_mail_last_balance_kop) if _mail_last_balance_kop is not None else '—'
+    text = f'🏪 <b>API-магазины dim4n4ik</b>\n\n🎮 <b>Steam API</b>\n🔑 {_mask_key(steam_key)}\n💰 {steam_bal}\n\n📧 <b>Outlook / Mail API</b>\n🔑 {_mask_key(mail_key)}\n💰 {mail_bal}\n\nКлючи и балансы у магазинов разные.'
+    rows = [[('🎮 Steam API', 'd4s_provider:steam'), ('📧 Outlook API', 'd4s_provider:mail')], [('🔙 Назад', 'd4s_main')]]
     kb = _make_kb(rows)
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
-def _menu_api_delete_confirm(chat_id, message_id=None) -> None:
-    text = '⚠️ <b>Удалить API-ключ?</b>\n\nПлагин перестанет закупать товары до добавления нового ключа. Привязки, статистика и остальные настройки сохранятся.'
-    kb = _make_kb([[('✅ Удалить', 'd4s_key_delete_yes'), ('❌ Отмена', 'd4s_key_delete_no')]])
+def _menu_provider_account(chat_id, message_id, provider: str) -> None:
+    name = _provider_name(provider)
+    key = str(cfg_get(_provider_key_name(name)) or (cfg_get('api_key') if name == 'steam' else '') or '')
+    bal = _mail_last_balance_kop if name == 'mail' else _last_balance_kop
+    title = '📧 Outlook / Mail API' if name == 'mail' else '🎮 Steam API'
+    bot_url = _provider_bot_url(name)
+    text = f'{title}\n\n🔑 API-ключ: {_mask_key(key)}\n💰 Баланс: <b>{_fmt_rub_kop(bal) if bal is not None else "—"}</b>\n\n🔗 <a href="{bot_url}">Открыть магазин</a>'
+    set_action = 'd4s_set_mail_key' if name == 'mail' else 'd4s_set_key'
+    del_action = 'd4s_mail_key_delete_ask' if name == 'mail' else 'd4s_key_delete_ask'
+    health_action = 'd4s_mail_health' if name == 'mail' else 'd4s_health'
+    rows = [[('🔄 Изменить API-ключ' if key else '🔑 Добавить API-ключ', set_action)]]
+    if key:
+        rows.append([('🗑 Удалить API-ключ', del_action)])
+    rows.extend([[('🩺 Проверка API', health_action)], [('🔙 К API-магазинам', 'd4s_account')]])
+    kb = _make_kb(rows)
+    _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
+def _menu_api_delete_confirm(chat_id, message_id=None, provider: str='steam') -> None:
+    name = _provider_name(provider)
+    label = 'Outlook / Mail API' if name == 'mail' else 'Steam API'
+    yes = 'd4s_mail_key_delete_yes' if name == 'mail' else 'd4s_key_delete_yes'
+    no = 'd4s_mail_key_delete_no' if name == 'mail' else 'd4s_key_delete_no'
+    text = f'⚠️ <b>Удалить ключ {label}?</b>\n\nПокупка через этот API перестанет работать до добавления нового ключа. Привязки и статистика сохранятся.'
+    kb = _make_kb([[('✅ Удалить', yes), ('❌ Отмена', no)]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_plugin_settings(chat_id, message_id=None) -> None:
     notifications = 'ВКЛ' if cfg_get('notifications_enabled') else 'ВЫКЛ'
@@ -2468,7 +2573,7 @@ def _menu_plugin_settings(chat_id, message_id=None) -> None:
         database_count = len(meta['databases'])
     except Exception:
         database_count = 0
-    text = f'⚙️ <b>Настройки плагина</b>\n\n• Состояние: <b>{"🟢 включён" if cfg_get("plugin_enabled") else "🔴 выключен"}</b>\n• Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n• Автодеактивация: <b>{_onoff("auto_lots_by_stock")}</b>\n• Уведомления: <b>{notifications}</b>\n• Баз аккаунтов: <b>{database_count}</b>\n\nВыберите категорию:'
+    text = f'⚙️ <b>Настройки плагина</b>\n\n• Состояние: <b>{"🟢 включён" if cfg_get("plugin_enabled") else "🔴 выключен"}</b>\n• Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n• Автодеактивация: <b>{_onoff("auto_lots_by_stock")}</b>\n• Автовключение после пополнения API: <b>{_onoff("auto_reenable_api_lots")}</b>\n• Уведомления: <b>{notifications}</b>\n• Баз аккаунтов: <b>{database_count}</b>\n\nВыберите категорию:'
     kb = _make_kb([[('🧩 Состояние плагина', 'd4s_plugin_state')], [('📦 Заказы', 'd4s_order_set')], [('🔔 Уведомления', 'd4s_notifications')], [('🛡 Безопасность', 'd4s_safety')], [('🗃 Базы аккаунтов', 'd4s_databases')], [('🧰 Обслуживание', 'd4s_maintenance')], [('🔙 Назад', 'd4s_main')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_plugin_state(chat_id, message_id=None) -> None:
@@ -2477,8 +2582,8 @@ def _menu_plugin_state(chat_id, message_id=None) -> None:
     kb = _make_kb([[(f'🧩 Плагин: {"ВКЛ" if enabled else "ВЫКЛ"}', 'd4s_ptgl:plugin_enabled')], [('🔙 Назад', 'd4s_plugin_set')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_order_settings(chat_id, message_id=None) -> None:
-    text = f'📦 <b>Настройки заказов</b>\n\n↩️ Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n🔌 Автодеактивация лотов при отсутствии товара: <b>{_onoff("auto_lots_by_stock")}</b>\n\nСообщения покупателю можно менять отдельно, не редактируя код.'
-    kb = _make_kb([[(f'↩️ Авто-возврат: {_onoff("auto_refund_enabled")}', 'd4s_otgl:auto_refund_enabled')], [(f'🔌 Автодеактивация: {_onoff("auto_lots_by_stock")}', 'd4s_otgl:auto_lots_by_stock')], [('💬 Сообщения покупателю', 'd4s_messages')], [('🔙 Назад', 'd4s_plugin_set')]])
+    text = f'📦 <b>Настройки заказов</b>\n\n↩️ Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n🔌 Автодеактивация лотов при отсутствии товара: <b>{_onoff("auto_lots_by_stock")}</b>\n🔄 Автовключение API-лотов после пополнения: <b>{_onoff("auto_reenable_api_lots")}</b>\n\nСообщения покупателю можно менять отдельно, не редактируя код.'
+    kb = _make_kb([[(f'↩️ Авто-возврат: {_onoff("auto_refund_enabled")}', 'd4s_otgl:auto_refund_enabled')], [(f'🔌 Автодеактивация: {_onoff("auto_lots_by_stock")}', 'd4s_otgl:auto_lots_by_stock')], [(f'🔄 Включать после пополнения: {_onoff("auto_reenable_api_lots")}', 'd4s_otgl:auto_reenable_api_lots')], [('💬 Сообщения покупателю', 'd4s_messages')], [('🔙 Назад', 'd4s_plugin_set')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_notifications(chat_id, message_id=None) -> None:
     text = f'🔔 <b>Уведомления</b>\n\nВсе уведомления: <b>{_onoff("notifications_enabled")}</b>\nПорог низкого баланса: <b>{float(cfg_get("low_balance_threshold_rub") or 0):.0f} ₽</b>\nПроверка баланса: <b>раз в {int(cfg_get("balance_check_interval_min") or 10)} мин.</b>\n\nКаждый тип можно включить или выключить отдельно.'
@@ -2834,22 +2939,30 @@ def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
             else:
                 source = f"🗃 {db.get('name')} — {db.get('product_title')}" if db else '🗃 база не найдена'
         else:
-            source = f"🌐 {binding.get('product_title')} (id {binding.get('product_id')})"
+            api_label = 'Mail API' if _provider_name(str(binding.get('api_provider') or 'steam')) == 'mail' else 'Steam API'
+            source = f"🌐 {api_label}: {binding.get('product_title')} (id {binding.get('product_id')})"
         stock_cached = _binding_effective_stock_cached(binding)
         stock_text = stock_cached if stock_cached is not None else '—'
         if mail:
-            lines.extend([f'Тип: <b>📧 {MAIL_PRODUCT_TITLE}</b>', 'Режим: <b>🗃 Выдавать из отдельной базы почт</b>', f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Количество на FunPay: <b>{stock_text}</b>", f"Доступно продаж по источнику: <b>{stock_text}</b>"])
+            mail_mode = '🌐 Покупать через Mail API' if mode == 'api' else '🗃 Выдавать из отдельной базы почт'
+            lines.extend([f'Тип: <b>📧 {MAIL_PRODUCT_TITLE}</b>', f'Режим: <b>{mail_mode}</b>', f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Количество на FunPay: <b>{stock_text}</b>", f"Доступно продаж по источнику: <b>{stock_text}</b>"])
         else:
-            fp_delivery = '🔴 выключена — товар выдаёт плагин'
-            lines.extend([f"Режим: <b>{'🗃 Выдавать из базы' if mode == 'database' else '🌐 Покупать при заказе'}</b>", f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Автовыдача FunPay: <b>{fp_delivery}</b>", f"Количество на FunPay: <b>{stock_text}</b>", f"Доступно продаж по источнику: <b>{stock_text}</b>"])
+            lines.extend([f"Режим: <b>{'🗃 Выдавать из базы' if mode == 'database' else '🌐 Покупать при заказе'}</b>", f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Количество на FunPay: <b>{stock_text}</b>", f"Доступно продаж по источнику: <b>{stock_text}</b>"])
     else:
         lines.append('Лот ещё не настроен в плагине. Сначала выберите режим выдачи.')
     state_label = '🟢 Лот: ВКЛ' if lot.get('active', True) else '🔴 Лот: ВЫКЛ'
     rows = [[(state_label, f'd4s_lot_toggle:{lot_id}')]]
     if mail:
-        db_name = str(db.get('name')) if db else 'не найдена'
-        database_id = str(binding.get('database_id') or '')
-        rows.append([(f'📧 База почт: {db_name[:30]}', f'd4s_db:{database_id}')])
+        mode_label = '🚚 Режим: Mail API' if mode == 'api' else '🚚 Режим: локальная база почт'
+        rows.append([(mode_label, f'd4s_lot_mode_menu:{lot_id}')])
+        if mode == 'database':
+            db_name = str(db.get('name')) if db else 'не найдена'
+            database_id = str(binding.get('database_id') or '')
+            if database_id:
+                rows.append([(f'📧 База почт: {db_name[:30]}', f'd4s_db:{database_id}')])
+        else:
+            product_title = str(binding.get('product_title') or 'не выбран')
+            rows.append([(f'🌐 Товар Mail API: {product_title[:26]}', f'd4s_lot_mode_mailapi:{lot_id}')])
     else:
         mode_label = '🚚 Режим: не выбран'
         if mode == 'database':
@@ -2889,37 +3002,51 @@ def _configure_mail_lot(lot_id: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         target = old.get('fp_stock_target') if old else _fp_buffer()
         if int(target or 0) <= 0:
             target = _fp_buffer()
-        binding = {'product_id': 0, 'product_title': MAIL_PRODUCT_TITLE, 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'database', 'database_id': str(db['id']), 'source_type': 'mail', 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
+        binding = {'product_id': 0, 'product_title': MAIL_PRODUCT_TITLE, 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'database', 'database_id': str(db['id']), 'source_type': 'mail', 'api_provider': 'mail', 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
         _bindings[lot_id] = _normalize_binding(binding)
         _save_bindings()
     _disable_fp_autodelivery(lot_id)
     return db, _bindings[lot_id]
+def _prepare_mail_lot(lot_id: str) -> Dict[str, Any]:
+    lot_id = str(lot_id)
+    lot = next((x for x in _cached_funpay_lots() if str(x.get('lot_id')) == lot_id), {})
+    with _bindings_lock:
+        old = _normalize_binding(_bindings.get(lot_id) or {})
+        binding = {'product_id': int(old.get('product_id') or 0), 'product_title': str(old.get('product_title') or MAIL_PRODUCT_TITLE), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': str(old.get('delivery_mode') or 'api'), 'database_id': str(old.get('database_id') or ''), 'source_type': 'mail', 'api_provider': 'mail', 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
+        _bindings[lot_id] = _normalize_binding(binding)
+        _save_bindings()
+    _disable_fp_autodelivery(lot_id)
+    return _bindings[lot_id]
 def _menu_lot_mode_pick(chat_id, message_id, lot_id: str) -> None:
     with _bindings_lock:
         raw = _bindings.get(str(lot_id))
     binding = _normalize_binding(raw) if raw else None
-    if binding and _binding_is_mail(binding):
-        _menu_database_detail(chat_id, message_id, str(binding.get('database_id') or ''))
-        return
+    mail = bool(binding and _binding_is_mail(binding))
     current = str(binding.get('delivery_mode') or '') if binding else ''
-    api_label = ('✅ ' if current == 'api' else '') + '🌐 Покупать при заказе'
-    db_label = ('✅ ' if current == 'database' else '') + '🗃 Выдавать из базы данных'
-    rows = [[(api_label, f'd4s_lot_mode_api:{lot_id}')], [(db_label, f'd4s_lot_mode_db:{lot_id}')], [('🔙 Назад', f'd4s_lot_pick:{lot_id}')]]
-    text = '🚚 <b>Режим выдачи</b>\n\nВыберите, как этот лот будет получать товар.'
+    api_label = ('✅ ' if current == 'api' else '') + ('🌐 Покупать почту через Mail API' if mail else '🌐 Покупать при заказе')
+    db_label = ('✅ ' if current == 'database' else '') + ('🗃 Выдавать из локальной базы почт' if mail else '🗃 Выдавать из базы данных')
+    api_cb = f'd4s_lot_mode_mailapi:{lot_id}' if mail else f'd4s_lot_mode_api:{lot_id}'
+    db_cb = f'd4s_lot_mode_maildb:{lot_id}' if mail else f'd4s_lot_mode_db:{lot_id}'
+    rows = [[(api_label, api_cb)], [(db_label, db_cb)], [('🔙 Назад', f'd4s_lot_pick:{lot_id}')]]
+    text = '🚚 <b>Режим выдачи</b>\n\nВыберите, откуда плагин будет брать товар после оплаты FunPay.'
     _tg_edit(chat_id, message_id, text, _make_kb(rows)) if message_id else _tg_send(chat_id, text, _make_kb(rows))
-def _menu_lot_api_products(chat_id, message_id, lot_id: str, page: int=0) -> None:
+def _menu_lot_api_products(chat_id, message_id, lot_id: str, page: int=0, provider: str='steam') -> None:
+    provider = _provider_name(provider)
     try:
-        items = _visible_catalog()
+        items = _visible_catalog(_get_catalog_cached(provider=provider))
     except Exception as e:
         _tg_edit(chat_id, message_id, f'❌ Каталог недоступен: {e}', _make_kb([[('🔙 Назад', f'd4s_lot_pick:{lot_id}')]]))
         return
     pages = max(1, (len(items) + 7) // 8)
     page = max(0, min(page, pages - 1))
-    rows = [[(f"{str(it.get('title'))[:30]} · {it.get('in_stock', 0)} шт.", f"d4s_lot_apip:{lot_id}:{it.get('id')}")] for it in items[page * 8:(page + 1) * 8]]
+    pick_action = 'd4s_lot_mailapip' if provider == 'mail' else 'd4s_lot_apip'
+    page_action = 'd4s_lot_mailapipp' if provider == 'mail' else 'd4s_lot_apipp'
+    rows = [[(f"{str(it.get('title'))[:30]} · {it.get('in_stock', 0)} шт.", f"{pick_action}:{lot_id}:{it.get('id')}")] for it in items[page * 8:(page + 1) * 8]]
     if pages > 1:
-        rows.append([('⬅️', f'd4s_lot_apipp:{lot_id}:{max(0,page-1)}'), (f'{page+1}/{pages}', 'd4s_noop'), ('➡️', f'd4s_lot_apipp:{lot_id}:{min(pages-1,page+1)}')])
+        rows.append([('⬅️', f'{page_action}:{lot_id}:{max(0,page-1)}'), (f'{page+1}/{pages}', 'd4s_noop'), ('➡️', f'{page_action}:{lot_id}:{min(pages-1,page+1)}')])
     rows.append([('❌ Отмена', f'd4s_lot_pick:{lot_id}')])
-    _tg_edit(chat_id, message_id, '🌐 <b>Покупать при заказе</b>\n\nВыберите товар dim4n4ik.shop. При каждой покупке лота плагин купит нужное количество через API.', _make_kb(rows))
+    title = 'Mail API' if provider == 'mail' else 'Steam API'
+    _tg_edit(chat_id, message_id, f'🌐 <b>Покупать при заказе · {title}</b>\n\nВыберите товар. При оплате FunPay плагин купит нужное количество через выбранный API.', _make_kb(rows))
 def _menu_lot_database_pick(chat_id, message_id, lot_id: str) -> None:
     meta = _load_databases_meta()
     rows = []
@@ -2931,23 +3058,24 @@ def _menu_lot_database_pick(chat_id, message_id, lot_id: str) -> None:
         rows.append([('➕ Сначала создать базу', 'd4s_databases')])
     rows.append([('❌ Отмена', f'd4s_lot_pick:{lot_id}')])
     _tg_edit(chat_id, message_id, '🗃 <b>Выдавать из базы</b>\n\nВыберите заранее пополняемую базу аккаунтов.', _make_kb(rows))
-def _configure_lot_api(lot_id: str, product_id: int) -> Dict[str, Any]:
+def _configure_lot_api(lot_id: str, product_id: int, provider: str='steam') -> Dict[str, Any]:
+    provider = _provider_name(provider)
     with _bindings_lock:
         existing = dict(_bindings.get(str(lot_id)) or {})
-    if _binding_is_mail(existing):
-        raise ValueError('Почтовый лот работает только из своей базы почт')
-    item = next((x for x in _get_catalog_cached() if int(x.get('id', -1)) == int(product_id)), None)
+    if _binding_is_mail(existing) and provider != 'mail':
+        raise ValueError('Почтовый лот можно привязать только к Mail API или локальной базе почт')
+    item = next((x for x in _get_catalog_cached(provider=provider) if int(x.get('id', -1)) == int(product_id)), None)
     if not item or not _is_text_kind(item):
         raise ValueError('Товар не найден или не является текстовым')
     with _bindings_lock:
         old = _normalize_binding(_bindings.get(str(lot_id)) or {})
         lot = next((x for x in _cached_funpay_lots() if str(x.get('lot_id')) == str(lot_id)), {})
-        binding = {'product_id': int(product_id), 'product_title': str(item.get('title') or f'товар {product_id}'), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'api', 'database_id': '', 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
+        binding = {'product_id': int(product_id), 'product_title': str(item.get('title') or f'товар {product_id}'), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'api', 'database_id': '', 'source_type': 'mail' if provider == 'mail' else old.get('source_type', ''), 'api_provider': provider, 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
         _bindings[str(lot_id)] = _normalize_binding(binding)
         _save_bindings()
     _apply_lot_sync(str(lot_id), int(product_id))
     if not _sync_binding_stock(str(lot_id), _bindings[str(lot_id)])[0]:
-        _log_event('funpay_manual_stock_sync_failed', level=logging.WARNING, lot_id=lot_id)
+        _log_event('funpay_manual_stock_sync_failed', level=logging.WARNING, lot_id=lot_id, provider=provider)
     return _bindings[str(lot_id)]
 def _configure_lot_database(lot_id: str, database_id: str) -> Dict[str, Any]:
     db = _database_by_id(database_id)
@@ -3202,14 +3330,6 @@ def _grp_copy_country(chat_id, gi: int, product_id: int) -> None:
             return
         region_line = f'🌍 Регион в лоте выставлен: {region}\n' if region else '⚠️ Регион в форме лота не нашёл — проверьте вручную!\n'
         fpad_line = ''
-        if sb.get('fp_auto'):
-            ok, n = _sync_fp_stock(new_id, int(product_id))
-            if ok:
-                with _bindings_lock:
-                    if new_id in _bindings:
-                        _bindings[new_id]['fp_auto'] = True
-                        _save_bindings()
-                fpad_line = f'⚡ Мгновенная выдача FunPay включена (в наличии {n}).\n'
         _tg_send(chat_id, f'✅ Создан лот <b>{new_id}</b>:\n<code>{applied}</code>\n{region_line}{fpad_line}привязан к «{dst_title}» в группе «{group}», тег вписан.\n💡 Проверьте/поправьте лот на FunPay:\nhttps://funpay.com/lots/offerEdit?offer={new_id}')
         _menu_group(chat_id, None, gi)
     threading.Thread(target=work, daemon=True).start()
@@ -3219,8 +3339,9 @@ def _menu_binding_detail(chat_id, message_id, lot_id: str) -> None:
     if not b:
         _menu_bindings(chat_id, message_id)
         return
-    text = f"🔗 <b>Привязка лота {lot_id}</b>\n\n📦 Товар: {b.get('product_title')} (id {b.get('product_id')})\n📁 Группа: {b.get('group') or NO_GROUP}\n🔢 Кол-во за 1 шт. заказа: {b.get('qty', 1)}\n🏷 Название лота: {b.get('lot_name') or '—'}\nСтатус: {('✅ включена' if b.get('enabled', True) else '⏸ выключена')} (тумблер также включает/выключает лот на FunPay)\n⚡ Мгновенная выдача FunPay: {('✅ вкл' if b.get('fp_auto') else '❌ выкл')}\n\n💡 Ссылка на лот: https://funpay.com/lots/offer?id={lot_id}\n💡 Для лотов-клонов добавьте в описание лота тег <code>d4s:{b.get('product_id')}</code>"
-    kb = _make_kb([[('⏸ Выключить' if b.get('enabled', True) else '▶️ Включить', f'd4s_bind_tgl:{lot_id}'), ('🔢 Кол-во', f'd4s_bind_qty:{lot_id}')], [(f"⚡ Мгновенная выдача: {('ВКЛ' if b.get('fp_auto') else 'выкл')}", f'd4s_bind_fpad:{lot_id}')], [('📁 Группа', f'd4s_bind_grp:{lot_id}'), ('🔄 Синхр. лота', f'd4s_bind_sync:{lot_id}')], [('🏷 Название вручную', f'd4s_bind_name:{lot_id}'), ('🗑 Удалить', f'd4s_bind_del:{lot_id}')], [('🔙 К привязкам', 'd4s_bind_list')]])
+    provider_label = 'Mail API' if _provider_name(str(b.get('api_provider') or 'steam')) == 'mail' else 'Steam API'
+    text = f"🔗 <b>Привязка лота {lot_id}</b>\n\n📦 Товар: {b.get('product_title')} (id {b.get('product_id')})\n🌐 API: {provider_label if str(b.get('delivery_mode') or 'api') == 'api' else 'локальная база'}\n📁 Группа: {b.get('group') or NO_GROUP}\n🔢 Кол-во за 1 шт. заказа: {b.get('qty', 1)}\n🏷 Название лота: {b.get('lot_name') or '—'}\nСтатус: {('✅ включена' if b.get('enabled', True) else '⏸ выключена')} (тумблер также включает/выключает лот на FunPay)\n\n💡 Ссылка на лот: https://funpay.com/lots/offer?id={lot_id}\n💡 Для лотов-клонов добавьте в описание лота тег <code>d4s:{b.get('product_id')}</code>"
+    kb = _make_kb([[('⏸ Выключить' if b.get('enabled', True) else '▶️ Включить', f'd4s_bind_tgl:{lot_id}'), ('🔢 Кол-во', f'd4s_bind_qty:{lot_id}')], [('📁 Группа', f'd4s_bind_grp:{lot_id}'), ('🔄 Синхр. лота', f'd4s_bind_sync:{lot_id}')], [('🏷 Название вручную', f'd4s_bind_name:{lot_id}'), ('🗑 Удалить', f'd4s_bind_del:{lot_id}')], [('🔙 К привязкам', 'd4s_bind_list')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_add(chat_id, message_id=None) -> None:
     global _cat_idx
@@ -3415,9 +3536,11 @@ def _menu_stats(chat_id, message_id=None) -> None:
     kb = _make_kb([[('🔙 Меню', 'd4s_main')]])
     text = '\n'.join(lines)
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
-def _menu_health(chat_id, message_id=None) -> None:
-    lines = ['🩺 <b>Проверка API</b>\n']
-    client = _get_client()
+def _menu_health(chat_id, message_id=None, provider: str='steam') -> None:
+    provider = _provider_name(provider)
+    title = 'Outlook / Mail API' if provider == 'mail' else 'Steam API'
+    lines = [f'🩺 <b>Проверка {title}</b>\n']
+    client = _get_client(provider)
     if client is None:
         lines.append('❌ API-ключ не задан.')
     else:
@@ -3428,26 +3551,27 @@ def _menu_health(chat_id, message_id=None) -> None:
         except Exception as e:
             lines.append(f'❌ Ping: {str(e)[:100]}')
         try:
-            bal = _refresh_balance()
+            bal = _refresh_balance(provider)
             lines.append(f'✅ Баланс: {_fmt_rub_kop(bal)}')
         except Exception as e:
             lines.append(f'❌ Баланс: {str(e)[:100]}')
         try:
-            catalog = _get_catalog_cached(max_age=0)
+            catalog = _get_catalog_cached(max_age=0, provider=provider)
             lines.append(f'✅ Каталог: {len(catalog)} товаров')
             bindings = _enabled_bindings()
-            if bindings:
-                by_id = {int(it['id']): it for it in catalog}
-                for lot_id, b in bindings.items():
-                    pid = int(b['product_id'])
-                    it = by_id.get(pid)
-                    if it is None:
-                        lines.append(f'⚠️ Лот {lot_id}: товар id {pid} не найден в каталоге!')
-                    elif int(it.get('in_stock', 0)) <= 0:
-                        lines.append(f"⚠️ Лот {lot_id}: «{it.get('title')}» — нет в наличии")
+            by_id = {int(it['id']): it for it in catalog}
+            for lot_id, b in bindings.items():
+                if str(b.get('delivery_mode') or 'api') != 'api' or _provider_name(str(b.get('api_provider') or 'steam')) != provider:
+                    continue
+                pid = int(b.get('product_id') or 0)
+                it = by_id.get(pid)
+                if it is None:
+                    lines.append(f'⚠️ Лот {lot_id}: товар id {pid} не найден в каталоге!')
+                elif int(it.get('in_stock', 0)) <= 0:
+                    lines.append(f"⚠️ Лот {lot_id}: «{it.get('title')}» — нет в наличии")
         except Exception as e:
             lines.append(f'❌ Каталог: {str(e)[:100]}')
-    kb = _make_kb([[('🔙 Аккаунт', 'd4s_account'), ('🏠 Настройки', 'd4s_main')]])
+    kb = _make_kb([[('🔙 Назад', f'd4s_provider:{provider}'), ('🏠 Настройки', 'd4s_main')]])
     text = '\n'.join(lines)
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _cb_router(call) -> None:
@@ -3510,16 +3634,29 @@ def _cb_router(call) -> None:
     elif action == 'd4s_account':
         ack()
         _menu_account(chat_id, message_id)
+    elif action == 'd4s_provider':
+        ack()
+        _menu_provider_account(chat_id, message_id, arg)
     elif action == 'd4s_key_delete_ask':
         ack()
-        _menu_api_delete_confirm(chat_id, message_id)
+        _menu_api_delete_confirm(chat_id, message_id, 'steam')
+    elif action == 'd4s_mail_key_delete_ask':
+        ack()
+        _menu_api_delete_confirm(chat_id, message_id, 'mail')
     elif action == 'd4s_key_delete_yes':
-        _clear_api_key()
-        ack('API-ключ удалён')
-        _menu_account(chat_id, message_id)
+        _clear_api_key('steam')
+        ack('Steam API-ключ удалён')
+        _menu_provider_account(chat_id, message_id, 'steam')
     elif action == 'd4s_key_delete_no':
         ack()
-        _menu_account(chat_id, message_id)
+        _menu_provider_account(chat_id, message_id, 'steam')
+    elif action == 'd4s_mail_key_delete_yes':
+        _clear_api_key('mail')
+        ack('Mail API-ключ удалён')
+        _menu_provider_account(chat_id, message_id, 'mail')
+    elif action == 'd4s_mail_key_delete_no':
+        ack()
+        _menu_provider_account(chat_id, message_id, 'mail')
     elif action == 'd4s_plugin_set':
         ack()
         _menu_plugin_settings(chat_id, message_id)
@@ -3742,10 +3879,10 @@ def _cb_router(call) -> None:
             ack('Сессия добавления истекла')
             return
         try:
-            db, binding = _configure_mail_lot(arg)
+            _prepare_mail_lot(arg)
             _waiting.pop(chat_id, None)
-            ack('База почт создана')
-            _menu_database_detail(chat_id, message_id, str(db['id']))
+            ack('Тип сохранён')
+            _menu_lot_mode_pick(chat_id, message_id, arg)
         except Exception as e:
             ack(str(e)[:110])
     elif action == 'd4s_lot_pick':
@@ -3775,20 +3912,36 @@ def _cb_router(call) -> None:
         _menu_lot_mode_pick(chat_id, message_id, arg)
     elif action == 'd4s_lot_mode_api':
         ack()
-        _menu_lot_api_products(chat_id, message_id, arg, 0)
+        _menu_lot_api_products(chat_id, message_id, arg, 0, 'steam')
+    elif action == 'd4s_lot_mode_mailapi':
+        ack()
+        _menu_lot_api_products(chat_id, message_id, arg, 0, 'mail')
+    elif action == 'd4s_lot_mode_maildb':
+        try:
+            db, binding = _configure_mail_lot(arg)
+            ack('Локальная база почт выбрана')
+            threading.Thread(target=_sync_binding_stock, args=(arg, binding), daemon=True).start()
+            _menu_database_detail(chat_id, message_id, str(db['id']))
+        except Exception as e:
+            ack(str(e)[:110])
     elif action == 'd4s_lot_apipp':
         lot_id = args_[0] if args_ else ''
         page = iarg(1, 0)
         ack()
-        _menu_lot_api_products(chat_id, message_id, lot_id, page)
-    elif action == 'd4s_lot_apip':
+        _menu_lot_api_products(chat_id, message_id, lot_id, page, 'steam')
+    elif action == 'd4s_lot_mailapipp':
+        lot_id = args_[0] if args_ else ''
+        page = iarg(1, 0)
+        ack()
+        _menu_lot_api_products(chat_id, message_id, lot_id, page, 'mail')
+    elif action in ('d4s_lot_apip', 'd4s_lot_mailapip'):
         lot_id = args_[0] if args_ else ''
         pid = iarg(1, 0)
+        provider = 'mail' if action == 'd4s_lot_mailapip' else 'steam'
         try:
-            binding = _configure_lot_api(lot_id, pid)
+            binding = _configure_lot_api(lot_id, pid, provider)
             ack('Режим сохранён')
-            if _binding_stock_target(binding) > 0:
-                threading.Thread(target=_sync_binding_stock, args=(lot_id, binding), daemon=True).start()
+            threading.Thread(target=_sync_binding_stock, args=(lot_id, binding), daemon=True).start()
         except Exception as e:
             ack(str(e)[:110])
         _menu_lot_detail(chat_id, message_id, lot_id)
@@ -3866,7 +4019,7 @@ def _cb_router(call) -> None:
         ack()
         _menu_plugin_state(chat_id, message_id)
     elif action == 'd4s_otgl':
-        if arg in ('auto_refund_enabled', 'auto_lots_by_stock'):
+        if arg in ('auto_refund_enabled', 'auto_lots_by_stock', 'auto_reenable_api_lots'):
             cfg_set(arg, not cfg_get(arg))
         ack()
         _menu_order_settings(chat_id, message_id)
@@ -3907,9 +4060,13 @@ def _cb_router(call) -> None:
         ack()
         _menu_hidecats(chat_id, message_id)
     elif action == 'd4s_set_key':
-        _waiting[chat_id] = {'action': 'set_key'}
+        _waiting[chat_id] = {'action': 'set_key', 'provider': 'steam'}
         ack()
-        _tg_send(chat_id, f'🔑 Отправьте API-ключ (<code>rk_live_...</code>).\nВзять: <a href="{SHOP_BOT_URL}">Steam-бот dim4n4ik</a> → Профиль → «🔑 API».', _wait_kb(_waiting[chat_id]))
+        _tg_send(chat_id, f'🔑 Отправьте Steam API-ключ (<code>rk_live_...</code>).\nВзять: <a href="{SHOP_BOT_URL}">Steam-бот dim4n4ik</a> → Профиль → «🔑 API».', _wait_kb(_waiting[chat_id]))
+    elif action == 'd4s_set_mail_key':
+        _waiting[chat_id] = {'action': 'set_key', 'provider': 'mail'}
+        ack()
+        _tg_send(chat_id, f'🔑 Отправьте Outlook / Mail API-ключ (<code>rk_live_...</code>).\nВзять: <a href="{MAIL_BOT_URL}">бот почт dim4n4ik</a> → Профиль → «🔑 API».', _wait_kb(_waiting[chat_id]))
     elif action == 'd4s_set_lowbal':
         _waiting[chat_id] = {'action': 'set_lowbal'}
         ack()
@@ -4076,33 +4233,13 @@ def _cb_router(call) -> None:
         _menu_binding_detail(chat_id, message_id, arg)
     elif action == 'd4s_bind_fpad':
         with _bindings_lock:
-            b = _bindings.get(arg)
-        if not b:
-            ack('Привязка не найдена')
-            return
-        new_val = not b.get('fp_auto')
-        ack('Включаю…' if new_val else 'Выключаю…')
-        lot_id = arg
-        pid = int(b['product_id'])
-        _tg_send(chat_id, '⚡ Включаю мгновенную выдачу FunPay на лоте ' + lot_id + ' (галочка + заглушка вместо кредов)…' if new_val else f'🔌 Выключаю мгновенную выдачу FunPay на лоте {lot_id}…')
-        def _work_fpad():
-            if new_val:
-                ok, n = _sync_fp_stock(lot_id, pid)
-            else:
-                ok, n = (_disable_fp_autodelivery(lot_id), 0)
-            if ok:
-                with _bindings_lock:
-                    if lot_id in _bindings:
-                        _bindings[lot_id]['fp_auto'] = new_val
-                        _save_bindings()
-                if new_val:
-                    _tg_send(chat_id, f"✅ Лот {lot_id}: мгновенная выдача FunPay ВКЛ.\n📦 В наличии на FunPay: {n} (буфер {_fp_buffer()}, но не выше склада).\nFunPay сразу пришлёт покупателю заглушку, реальный аккаунт выдаст плагин. Буфер пополняется после продажи и синкается со складом каждые {int(cfg_get('fp_auto_sync_sec') or 120)} c.")
-                else:
-                    _tg_send(chat_id, f'🔌 Лот {lot_id}: мгновенная выдача FunPay ВЫКЛ (галочка снята, заглушки убраны).')
-            else:
-                _tg_send(chat_id, f'❌ Лот {lot_id}: не удалось изменить автовыдачу на FunPay.')
-            _menu_binding_detail(chat_id, None, lot_id)
-        threading.Thread(target=_work_fpad, daemon=True).start()
+            if arg in _bindings:
+                _bindings[arg]['fp_auto'] = False
+                _bindings[arg]['fp_stock_target'] = 0
+                _save_bindings()
+        threading.Thread(target=_disable_fp_autodelivery, args=(arg,), daemon=True).start()
+        ack('Автовыдача FunPay отключена')
+        _menu_binding_detail(chat_id, message_id, arg)
     elif action == 'd4s_bind_name':
         _waiting[chat_id] = {'action': 'bind_setname', 'lot_id': arg}
         ack()
@@ -4190,7 +4327,10 @@ def _cb_router(call) -> None:
         _menu_stats(chat_id, message_id)
     elif action == 'd4s_health':
         ack('Проверяю...')
-        _menu_health(chat_id, message_id)
+        _menu_health(chat_id, message_id, 'steam')
+    elif action == 'd4s_mail_health':
+        ack('Проверяю...')
+        _menu_health(chat_id, message_id, 'mail')
     elif action == 'd4s_db_order_commit':
         with _orders_lock:
             od = dict(_pending.get(arg) or {})
@@ -4199,7 +4339,7 @@ def _cb_router(call) -> None:
             return
         count = _commit_database_reservation(str(od['database_id']), arg)
         _finish_order(arg, 'COMPLETED_MANUAL', int(od.get('cost_kop') or 0))
-        _record_sale(int(od.get('product_id') or 0), str(od.get('product_title') or 'Товар'), int(od.get('qty') or count), float(od.get('price_rub') or 0) if str(od.get('currency') or '') in ('', 'rub', '₽') else 0.0, 0.0)
+        _record_sale(int(od.get('product_id') or 0), str(od.get('product_title') or 'Товар'), int(od.get('qty') or count), float(od.get('price_rub') or 0) if str(od.get('currency') or '') in ('', 'rub', '₽') else 0.0, 0.0, str(od.get('api_provider') or 'steam'))
         ack('Отмечено выданным')
         _tg_send(chat_id, f'✅ Заказ #{arg} отмечен выданным. Списано из базы: {count}.')
         threading.Thread(target=_resync_database_lots, args=(str(od['database_id']),), daemon=True).start()
@@ -4342,6 +4482,7 @@ def _text_handler(m) -> None:
             return
         _restore_lot_to_plugin(lot_id)
         _cache_funpay_lot(lot)
+        _delete_user_message(m)
         _waiting[chat_id] = {'action': 'lot_manual_type', 'lot_id': lot_id}
         _menu_lot_type_pick(chat_id, None, lot_id)
     elif action == 'lot_set_qty':
@@ -4363,10 +4504,10 @@ def _text_handler(m) -> None:
             binding = _normalize_binding(_bindings[lot_id])
             _bindings[lot_id] = binding
             _save_bindings()
+        _delete_user_message(m)
         _waiting.pop(chat_id, None)
         _tg_send(chat_id, f'✅ За одну единицу заказа будет выдаваться: {qty}.')
-        if _binding_stock_target(binding) > 0:
-            threading.Thread(target=_sync_binding_stock, args=(lot_id, binding), daemon=True).start()
+        threading.Thread(target=_sync_binding_stock, args=(lot_id, binding), daemon=True).start()
         _menu_lot_detail(chat_id, None, lot_id)
     elif action == 'lot_set_stock':
         try:
@@ -4397,6 +4538,7 @@ def _text_handler(m) -> None:
                 _bindings[lot_id] = binding
                 _save_bindings()
                 api_mode = False
+        _delete_user_message(m)
         _waiting.pop(chat_id, None)
         if api_mode:
             threading.Thread(target=_disable_fp_autodelivery, args=(lot_id,), daemon=True).start()
@@ -4414,35 +4556,50 @@ def _text_handler(m) -> None:
         if not text.startswith('rk_'):
             _tg_send(chat_id, '⚠️ Ключ должен начинаться с <code>rk_</code>. Попробуйте ещё раз.', _wait_kb(st))
             return
-        old_key = str(cfg_get('api_key') or '')
+        provider = _provider_name(str(st.get('provider') or 'steam'))
+        key_name = _provider_key_name(provider)
+        old_key = str(cfg_get(key_name) or (cfg_get('api_key') if provider == 'steam' else '') or '')
         with _config_lock:
-            _config['api_key'] = text
-        _reset_api_runtime()
+            _config[key_name] = text
+            if provider == 'steam':
+                _config['api_key'] = text
+        _reset_api_runtime(provider)
         try:
-            bal = _refresh_balance()
+            bal = _refresh_balance(provider)
         except ShopNetworkError:
             with _config_lock:
-                _config['api_key'] = old_key
-            _reset_api_runtime()
-            _tg_send(chat_id, '❌ Проблема с подключением к API dim4n4ik.shop. API-ключ не сохранён. Проверьте интернет или доступность сервиса и попробуйте ещё раз.', _wait_kb(st))
+                _config[key_name] = old_key
+                if provider == 'steam':
+                    _config['api_key'] = old_key
+            _reset_api_runtime(provider)
+            label = 'Mail API' if provider == 'mail' else 'Steam API'
+            _tg_send(chat_id, f'❌ Проблема с подключением к {label}. API-ключ не сохранён. Проверьте интернет или доступность сервиса и попробуйте ещё раз.', _wait_kb(st))
             return
         except ShopApiError as e:
             with _config_lock:
-                _config['api_key'] = old_key
-            _reset_api_runtime()
-            reason = ERROR_HUMAN.get(e.code, e.message or e.code)
+                _config[key_name] = old_key
+                if provider == 'steam':
+                    _config['api_key'] = old_key
+            _reset_api_runtime(provider)
+            reason = _error_human(e.code, e.message or e.code, provider)
             _tg_send(chat_id, f'❌ API-ключ не сохранён. Сервис отклонил проверку: {reason}', _wait_kb(st))
             return
         except Exception as e:
             with _config_lock:
-                _config['api_key'] = old_key
-            _reset_api_runtime()
+                _config[key_name] = old_key
+                if provider == 'steam':
+                    _config['api_key'] = old_key
+            _reset_api_runtime(provider)
             _tg_send(chat_id, f'❌ Не удалось проверить подключение к API. API-ключ не сохранён: {str(e)[:120]}', _wait_kb(st))
             return
-        cfg_set('api_key', text)
+        cfg_set(key_name, text)
+        if provider == 'steam':
+            cfg_set('api_key', text)
+        _delete_user_message(m)
         _waiting.pop(chat_id, None)
-        _tg_send(chat_id, f'✅ API-ключ добавлен. Баланс: {_fmt_rub_kop(bal)}')
-        _menu_account(chat_id)
+        label = 'Outlook / Mail API' if provider == 'mail' else 'Steam API'
+        _tg_send(chat_id, f'✅ {label}-ключ добавлен. Баланс: {_fmt_rub_kop(bal)}')
+        _menu_provider_account(chat_id, None, provider)
     elif action == 'set_lowbal':
         try:
             val = float(text.replace(',', '.'))
@@ -4527,6 +4684,7 @@ def _text_handler(m) -> None:
         if not ids:
             _tg_send(chat_id, f'⚠️ Все эти лоты уже привязаны.{note}\nПришлите другие.', _wait_kb(st))
             return
+        _delete_user_message(m)
         if len(ids) == 1:
             st['lot_id'] = ids[0]
             count_txt = f'Лот {ids[0]}.'
@@ -4546,6 +4704,7 @@ def _text_handler(m) -> None:
             except Exception:
                 _tg_send(chat_id, f'⚠️ Отправьте число от 1 до {FUNPAY_ORDER_QTY_MAX} или <code>-</code>.', _wait_kb(st))
                 return
+        _delete_user_message(m)
         st['qty'] = qty
         st['mode'] = 'create'
         _send_group_picker(chat_id, st)
@@ -4554,12 +4713,14 @@ def _text_handler(m) -> None:
         if not group:
             _tg_send(chat_id, '⚠️ Пустое имя. Отправьте название группы.', _wait_kb(st))
             return
+        _delete_user_message(m)
         _finalize_binding(chat_id, st, group)
     elif action == 'grp_rename':
         new = text[:40].strip()
         if not new:
             _tg_send(chat_id, '⚠️ Пустое имя. Отправьте название.', _wait_kb(st))
             return
+        _delete_user_message(m)
         _waiting.pop(chat_id, None)
         n = _rename_group(st['old'], new)
         _tg_send(chat_id, f"✅ Группа «{st['old']}» → «{new}» ({n} привязок)")
@@ -4572,6 +4733,7 @@ def _text_handler(m) -> None:
         except Exception:
             _tg_send(chat_id, f'⚠️ Отправьте целое число от 1 до {FUNPAY_ORDER_QTY_MAX}.', _wait_kb(st))
             return
+        _delete_user_message(m)
         _waiting.pop(chat_id, None)
         with _bindings_lock:
             if st['lot_id'] in _bindings:
@@ -4581,6 +4743,7 @@ def _text_handler(m) -> None:
         _tg_send(chat_id, f"✅ Кол-во для лота {st['lot_id']}: ×{qty}")
         _menu_bindings(chat_id)
     elif action == 'bind_setname':
+        _delete_user_message(m)
         _waiting.pop(chat_id, None)
         with _bindings_lock:
             if st['lot_id'] in _bindings:
@@ -4786,6 +4949,8 @@ def d4s_pre_init(c, *args) -> None:
                 if str(raw_messages.get('goods_header') or '') == LEGACY_DEFAULT_GOODS_HEADER:
                     messages['goods_header'] = DEFAULT_BUYER_MESSAGES['goods_header']
             _config['buyer_messages'] = messages
+        if not str(_config.get('steam_api_key') or '').strip() and str(_config.get('api_key') or '').strip():
+            _config['steam_api_key'] = str(_config.get('api_key') or '').strip()
         if not isinstance(_config.get('lot_cache'), list):
             _config['lot_cache'] = []
         save_json(CONFIG_FILE, _config)
@@ -4796,8 +4961,23 @@ def d4s_pre_init(c, *args) -> None:
     with _orders_lock:
         p = load_json(PENDING_FILE, {})
         _pending = p if isinstance(p, dict) else {}
+        for oid, od in list(_pending.items()):
+            if not isinstance(od, dict):
+                continue
+            if not od.get('api_provider'):
+                provider = 'steam'
+                if str(od.get('delivery_mode') or 'api') == 'database' and od.get('database_id'):
+                    try:
+                        if _is_mail_database(_database_by_id(str(od.get('database_id') or ''))):
+                            provider = 'mail'
+                    except Exception:
+                        pass
+                od['api_provider'] = provider
+            if str(od.get('delivery_mode') or 'api') == 'api' and not str(od.get('idem_key') or '').strip():
+                od['idem_key'] = f"fp-{oid}-{_provider_name(str(od.get('api_provider') or 'steam'))}"
         pr = load_json(PROCESSED_FILE, {})
         _processed = pr if isinstance(pr, dict) else {}
+        _save_orders_state()
     ad = load_json(AUTO_DISABLED_FILE, {})
     _auto_disabled.clear()
     _auto_disabled.update(ad if isinstance(ad, dict) else {})
