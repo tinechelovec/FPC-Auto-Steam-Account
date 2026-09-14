@@ -23,7 +23,7 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 DESCRIPTION = 'Авто-закупка и выдача Steam-аккаунтов и Outlook-почт через API или локальные базы на FunPay'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
@@ -2607,18 +2607,36 @@ def _menu_maintenance(chat_id, message_id=None) -> None:
     kb = _make_kb([[('📄 Логи', 'd4s_logs')], [('💾 Конфиг и резервные копии', 'd4s_config')], [('🔙 Назад', 'd4s_plugin_set')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_logs(chat_id, message_id=None) -> None:
-    path = Path(LOG_FILE)
-    tail = 'Лог пока пуст.'
-    if path.exists():
+    try:
+        path = Path(LOG_FILE)
+        tail = 'Лог пока пуст.'
+        if path.exists() and path.is_file():
+            try:
+                lines = path.read_text(encoding='utf-8', errors='replace').splitlines()[-20:]
+                tail = '\n'.join(lines)[-2800:] or 'Лог пока пуст.'
+            except Exception as e:
+                tail = f'Не удалось прочитать лог: {e}'
+        safe = str(tail or 'Лог пока пуст.').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        text = f'📄 <b>Логи</b>\n\nПоследние записи:\n<code>{safe}</code>'
         try:
-            lines = path.read_text(encoding='utf-8', errors='replace').splitlines()[-20:]
-            tail = '\n'.join(lines)[-2800:] or 'Лог пока пуст.'
+            kb = _make_kb([[('📥 Скачать лог', 'd4s_logs_download')], [('🗑 Очистить лог', 'd4s_logs_clear_ask')], [('🔙 Назад', 'd4s_maintenance')]])
         except Exception as e:
-            tail = f'Не удалось прочитать лог: {e}'
-    safe = tail.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-    text = f'📄 <b>Логи</b>\n\nПоследние записи:\n<code>{safe}</code>'
-    kb = _make_kb([[('📥 Скачать лог', 'd4s_logs_download')], [('🗑 Очистить лог', 'd4s_logs_clear_ask')], [('🔙 Назад', 'd4s_maintenance')]])
-    _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
+            kb = None
+            logger.warning(f'{LP} log menu keyboard fallback: {e}')
+        if message_id:
+            try:
+                _tg_edit(chat_id, message_id, text, kb)
+                return
+            except Exception as e:
+                logger.warning(f'{LP} log menu edit fallback: {e}')
+        _tg_send(chat_id, text, kb)
+    except Exception as e:
+        logger.exception(f'{LP} log menu error: {e}')
+        try:
+            _tg_send(chat_id, '📄 Логи временно не удалось отобразить. Нажмите «Скачать лог» или попробуйте ещё раз.', None)
+        except Exception:
+            pass
+
 def _menu_log_clear_confirm(chat_id, message_id=None) -> None:
     kb = _make_kb([[('✅ Очистить', 'd4s_logs_clear_yes'), ('❌ Отмена', 'd4s_logs')]])
     text = '⚠️ <b>Очистить лог плагина?</b>\n\nФайл будет очищен. Настройки, заказы и базы аккаунтов не затрагиваются.'
