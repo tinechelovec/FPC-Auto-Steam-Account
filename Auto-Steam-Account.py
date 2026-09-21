@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import quote
 import requests
 try:
     from tg_bot import CBT as _CBT
@@ -23,7 +24,7 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.1.1'
+VERSION = '1.2.0'
 DESCRIPTION = 'Авто-закупка и выдача Steam-аккаунтов и Outlook-почт через API или локальные базы на FunPay'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
@@ -59,17 +60,18 @@ BINDINGS_FILE = os.path.join(STORAGE_DIR, 'bindings.json')
 PENDING_FILE = os.path.join(STORAGE_DIR, 'pending_orders.json')
 PROCESSED_FILE = os.path.join(STORAGE_DIR, 'processed_orders.json')
 ORDER_LOG_FILE = os.path.join(STORAGE_DIR, 'order_log.json')
+MAIL_ACCESS_FILE = os.path.join(STORAGE_DIR, 'mail_access.json')
 STATS_FILE = os.path.join(STORAGE_DIR, 'stats.json')
 AUTO_DISABLED_FILE = os.path.join(STORAGE_DIR, 'auto_disabled_lots.json')
 DATABASES_META_FILE = os.path.join(STORAGE_DIR, 'databases.json')
 MIGRATION_FILE = os.path.join(STORAGE_DIR, 'migration.json')
 LOG_FILE = os.path.join(LOG_DIR, 'plugin.log')
-DEFAULT_BUYER_MESSAGES: Dict[str, str] = {'payment_received': '➖➖➖➖➖➖➖➖\n✅ Оплата получена! Выдаю товар, обычно это занимает меньше минуты…\n➖➖➖➖➖➖➖➖', 'goods_header': '🚨🚨🚨 ИНСТРУКЦИЯ ПО ВХОДУ В ПОЧТУ 🚨🚨🚨\n\n📧 Вход в почту: https://outlook.office.com/mail/\nДанные форматом:\nлогин стим:пароль стим:почта:пароль от почты\n\n‼️ Для входа в почту используйте ПОСЛЕДНИЕ два значения (после 2-го двоеточия) ‼️\n\n📎 Видеоинструкция гугл диск — https://drive.google.com/file/d/1iIi7BW6eI8Yl4q465jUD-J0BgVqUXcUd/view?usp=sharing', 'mail_goods_header': '📧 Ваши данные Outlook / Hotmail:\n\n📨 Вход: https://outlook.office.com/mail/\nДанные ниже выданы магазином в исходном формате.', 'goods_footer': '🙏 Проверьте товар и подтвердите заказ:\n{order_url}\n⭐ Будем рады отзыву!\n➖➖➖➖➖➖➖➖', 'refund': '➖➖➖➖➖➖➖➖\n😔 К сожалению, выдать товар по заказу #{order_id} не получилось.\n💸 Деньги возвращены. Приносим извинения!\n➖➖➖➖➖➖➖➖', 'delay': '➖➖➖➖➖➖➖➖\n⏳ Возникла задержка с выдачей заказа #{order_id}.\nПродавец уже уведомлён и решит вопрос в ближайшее время.\n➖➖➖➖➖➖➖➖'}
+DEFAULT_BUYER_MESSAGES: Dict[str, str] = {'payment_received': '➖➖➖➖➖➖➖➖\n✅ Оплата получена! Выдаю товар, обычно это занимает меньше минуты…\n➖➖➖➖➖➖➖➖', 'goods_header': '🚨🚨🚨 ИНСТРУКЦИЯ ПО ВХОДУ В ПОЧТУ 🚨🚨🚨\n\n📧 Вход в почту: https://outlook.office.com/mail/\nДанные форматом:\nлогин стим:пароль стим:почта:пароль от почты\n\n‼️ Для входа в почту используйте ПОСЛЕДНИЕ два значения (после 2-го двоеточия) ‼️\n\n📎 Видеоинструкция гугл диск — https://drive.google.com/file/d/1iIi7BW6eI8Yl4q465jUD-J0BgVqUXcUd/view?usp=sharing', 'mail_goods_header': '📧 Ваши данные Outlook / Hotmail:\n\n📨 Вход: https://outlook.office.com/mail/\nДанные ниже выданы магазином в исходном формате.\n\n📬 Последнее письмо можно запросить в этом чате командой: !mail_ваша@почта', 'goods_footer': '🙏 Проверьте товар и подтвердите заказ:\n{order_url}\n⭐ Будем рады отзыву!\n➖➖➖➖➖➖➖➖', 'refund': '➖➖➖➖➖➖➖➖\n😔 К сожалению, выдать товар по заказу #{order_id} не получилось.\n💸 Деньги возвращены. Приносим извинения!\n➖➖➖➖➖➖➖➖', 'delay': '➖➖➖➖➖➖➖➖\n⏳ Возникла задержка с выдачей заказа #{order_id}.\nПродавец уже уведомлён и решит вопрос в ближайшее время.\n➖➖➖➖➖➖➖➖'}
 LEGACY_DEFAULT_GOODS_HEADER = '✅ Ваш товар по заказу #{order_id}:'
 BUYER_MESSAGE_LABELS = {'payment_received': 'Оплата получена', 'goods_header': 'Заголовок выдачи Steam', 'mail_goods_header': 'Заголовок выдачи Outlook', 'goods_footer': 'После выдачи', 'refund': 'Возврат денег', 'delay': 'Задержка / ручная проверка'}
-DEFAULT_CONFIG: Dict[str, Any] = {'api_key': '', 'base_url': 'https://api.dim4n4ik.shop', 'steam_api_key': '', 'steam_base_url': 'https://api.dim4n4ik.shop', 'mail_api_key': '', 'mail_base_url': 'https://mailapi.dim4n4ik.shop', 'plugin_enabled': True, 'auto_refund_enabled': False, 'low_balance_threshold_rub': 100.0, 'balance_check_interval_min': 10, 'notifications_enabled': True, 'notify_new_order': True, 'notify_success': True, 'notify_failure': True, 'notify_errors': True, 'notify_low_balance': True, 'notify_out_of_stock': True, 'buyer_messages': dict(DEFAULT_BUYER_MESSAGES), 'hidden_categories': None, 'auto_lots_by_stock': True, 'auto_reenable_api_lots': True, 'fp_auto_buffer': 25, 'fp_auto_sync_sec': 60, 'loss_protection': True, 'loss_min_margin_percent': 0, 'match_by_title': False, 'lot_cache': [], 'ignored_lot_ids': [], 'mail_catalog_migrated': False}
+DEFAULT_CONFIG: Dict[str, Any] = {'api_key': '', 'base_url': 'https://api.dim4n4ik.shop', 'steam_api_key': '', 'steam_base_url': 'https://api.dim4n4ik.shop', 'mail_api_key': '', 'mail_base_url': 'https://mailapi.dim4n4ik.shop', 'plugin_enabled': True, 'auto_refund_enabled': False, 'low_balance_threshold_rub': 100.0, 'balance_check_interval_min': 10, 'notifications_enabled': True, 'notify_new_order': True, 'notify_success': True, 'notify_failure': True, 'notify_errors': True, 'notify_low_balance': True, 'notify_out_of_stock': True, 'buyer_messages': dict(DEFAULT_BUYER_MESSAGES), 'hidden_categories': None, 'auto_lots_by_stock': True, 'auto_reenable_api_lots': True, 'fp_auto_buffer': 25, 'fp_auto_sync_sec': 60, 'loss_protection': True, 'loss_min_margin_percent': 0, 'match_by_title': False, 'lot_cache': [], 'ignored_lot_ids': [], 'mail_catalog_migrated': False, 'buyer_mail_command_enabled': True}
 DEFAULT_STATS: Dict[str, Any] = {'total_orders': 0, 'total_failed': 0, 'total_qty': 0, 'total_revenue_rub': 0.0, 'total_cost_rub': 0.0, 'items': {}, 'last_order_at': ''}
-_STORAGE_TYPES = {'settings.json': dict, 'bindings.json': dict, 'pending_orders.json': dict, 'processed_orders.json': dict, 'order_log.json': list, 'stats.json': dict, 'auto_disabled_lots.json': dict, 'databases.json': dict}
+_STORAGE_TYPES = {'settings.json': dict, 'bindings.json': dict, 'pending_orders.json': dict, 'processed_orders.json': dict, 'order_log.json': list, 'mail_access.json': dict, 'stats.json': dict, 'auto_disabled_lots.json': dict, 'databases.json': dict}
 FUNPAY_ORDER_QTY_MAX = 10
 def _raw_json(path: Path, expected=None):
     try:
@@ -360,6 +362,7 @@ _bindings_lock = threading.RLock()
 _orders_lock = threading.RLock()
 _stats_lock = threading.RLock()
 _database_lock = threading.RLock()
+_mail_access_lock = threading.RLock()
 _maintenance_lock = threading.RLock()
 _stop_event = threading.Event()
 _waiting: Dict[int, Dict[str, Any]] = {}
@@ -377,9 +380,10 @@ _auto_disabled: Dict[str, Any] = {}
 _ok_strikes: Dict[str, int] = {}
 _grp_select: Dict[int, Dict[str, Any]] = {}
 _db_product_idx: List[int] = []
-AUTO_LOT_CATEGORIES = (89, 1350, 938)
+_mail_command_seen: Dict[str, float] = {}
+AUTO_LOT_CATEGORIES = (89, 938, 1350, 1907, 81, 612)
 _last_lot_discovery_ts = 0.0
-_last_lot_discovery_report: Dict[str, Any] = {'found': 0, 'errors': 0, 'category_counts': {89: 0, 1350: 0, 938: 0}}
+_last_lot_discovery_report: Dict[str, Any] = {'found': 0, 'errors': 0, 'category_counts': {category_id: 0 for category_id in AUTO_LOT_CATEGORIES}}
 _lot_create_lock = threading.Lock()
 _update_lock = threading.Lock()
 MSG_SEP = '➖➖➖➖➖➖➖➖'
@@ -1169,6 +1173,21 @@ class ShopClient:
         return self._request('POST', '/v1/orders', body={'product_id': int(product_id), 'qty': int(qty)}, idem_key=idem_key, timeout=200, max_attempts=4)
     def get_order(self, order_id: int) -> dict:
         return self._request('GET', f'/v1/orders/{int(order_id)}', timeout=60)
+    def get_mail_messages(self, login: str, folder: str='inbox', limit: int=20) -> dict:
+        folder = str(folder or 'inbox').lower()
+        if folder not in ('inbox', 'junk', 'deleted'):
+            folder = 'inbox'
+        limit = max(1, min(50, int(limit or 20)))
+        encoded_login = quote(str(login or '').strip(), safe='')
+        if not encoded_login:
+            raise ShopApiError(400, 'invalid_request', 'Не указан логин почты')
+        return self._request('GET', f'/v1/mail/{encoded_login}/messages?folder={folder}&limit={limit}', timeout=45, max_attempts=3)
+    def get_mail_code(self, login: str, service: str='') -> dict:
+        encoded_login = quote(str(login or '').strip(), safe='')
+        if not encoded_login:
+            raise ShopApiError(400, 'invalid_request', 'Не указан логин почты')
+        suffix = f'?service={quote(str(service).strip(), safe="")}' if str(service or '').strip() else ''
+        return self._request('GET', f'/v1/mail/{encoded_login}/code{suffix}', timeout=45, max_attempts=3)
 def _get_client(provider: str='steam') -> Optional[ShopClient]:
     global shop_client
     name = _provider_name(provider)
@@ -1895,6 +1914,13 @@ def process_order(oid: str) -> None:
         return
     if not delivery.get('footer_sent'):
         _notify_admin(f'⚠️ <b>Заказ #{oid}: товар выдан, но финальное сообщение не отправилось</b>\nПовторно товар не отправляется.', etype='error')
+    if _provider_name(str(od.get('api_provider') or 'steam')) == 'mail':
+        try:
+            remembered = _remember_mail_access(values, od)
+            _log_event('mail_access_saved', order_id=oid, qty=remembered, chat_id=od.get('chat_id'))
+        except Exception as e:
+            _log_event('mail_access_save_error', level=logging.ERROR, order_id=oid, error=str(e)[:200])
+            _notify_admin(f'⚠️ <b>Заказ #{oid}: почта выдана, но доступ к !mail не сохранён</b>\n{str(e)[:220]}', etype='error')
     if delivery_mode == 'database':
         try:
             _commit_database_reservation(str(od.get('database_id') or ''), oid)
@@ -2095,6 +2121,188 @@ def _recover_pending_orders_after_restart() -> None:
         threading.Thread(target=process_order, args=(oid,), daemon=True).start()
     if resumed:
         _notify_admin(f'🔄 После рестарта безопасно возобновлено заказов: {resumed}', etype=None)
+EMAIL_RE = re.compile(r'(?i)(?<![A-Z0-9._%+\-])([A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,})(?![A-Z0-9._%+\-])')
+MAIL_COMMAND_RE = re.compile(r'(?i)^!mail(?:_|\s+)([^\s]+@[^\s]+)$')
+def _mail_login_from_text(text: str) -> str:
+    match = MAIL_COMMAND_RE.match(str(text or '').strip())
+    if not match:
+        return ''
+    candidate = match.group(1).strip().strip('<>.,;()[]{}')
+    exact = EMAIL_RE.fullmatch(candidate)
+    return exact.group(1) if exact else ''
+def _message_chat_id(event: Any, msg: Any=None) -> Optional[int]:
+    for obj in (msg, event):
+        if obj is None:
+            continue
+        for attr in ('chat_id', 'chatId'):
+            raw = getattr(obj, attr, None)
+            try:
+                if raw is not None:
+                    return int(raw)
+            except Exception:
+                pass
+        chat = getattr(obj, 'chat', None)
+        try:
+            raw = getattr(chat, 'id', None)
+            if raw is not None:
+                return int(raw)
+        except Exception:
+            pass
+    return None
+def _mail_command_claim(event: Any, msg: Any, chat_id: Optional[int], text: str) -> bool:
+    now = time.time()
+    for key, ts in list(_mail_command_seen.items()):
+        if now - float(ts or 0) > 30:
+            _mail_command_seen.pop(key, None)
+    message_id = None
+    for obj in (msg, event):
+        if obj is not None:
+            message_id = getattr(obj, 'id', None) or getattr(obj, 'message_id', None)
+            if message_id is not None:
+                break
+    key = f'{chat_id}:{message_id or text}'
+    if key in _mail_command_seen:
+        return False
+    _mail_command_seen[key] = now
+    return True
+def _load_mail_access() -> Dict[str, Dict[str, Any]]:
+    with _mail_access_lock:
+        raw = load_json(MAIL_ACCESS_FILE, {})
+        if not isinstance(raw, dict):
+            return {}
+        clean: Dict[str, Dict[str, Any]] = {}
+        for key, value in raw.items():
+            if not isinstance(value, dict):
+                continue
+            login = str(value.get('login') or key or '').strip()
+            if not EMAIL_RE.fullmatch(login):
+                continue
+            row = dict(value)
+            row['login'] = login
+            row['chat_id'] = str(value.get('chat_id') or '')
+            clean[login.casefold()] = row
+        return clean
+def _remember_mail_access(values: List[str], od: Dict[str, Any]) -> int:
+    if _provider_name(str(od.get('api_provider') or 'steam')) != 'mail':
+        return 0
+    chat_id = od.get('chat_id')
+    if chat_id is None:
+        return 0
+    found: List[str] = []
+    for raw in values:
+        for match in EMAIL_RE.finditer(str(raw or '')):
+            login = match.group(1).strip()
+            if login.casefold() not in {x.casefold() for x in found}:
+                found.append(login)
+    if not found:
+        return 0
+    with _mail_access_lock:
+        access = _load_mail_access()
+        for login in found:
+            access[login.casefold()] = {
+                'login': login,
+                'chat_id': str(chat_id),
+                'buyer': str(od.get('buyer') or ''),
+                'order_id': str(od.get('order_id') or ''),
+                'delivered_at': time.time(),
+                'delivered_at_str': _now_str(),
+            }
+        save_json(MAIL_ACCESS_FILE, access)
+    return len(found)
+def _mail_access_allowed(login: str, chat_id: Optional[int]) -> bool:
+    if chat_id is None:
+        return False
+    row = _load_mail_access().get(str(login or '').casefold())
+    return bool(row and str(row.get('chat_id') or '') == str(chat_id))
+def _latest_mail_message(login: str) -> Optional[Dict[str, Any]]:
+    client = _get_client('mail')
+    if client is None:
+        raise ShopApiError(0, 'no_api_key', 'Mail API-ключ не задан в настройках плагина')
+    candidates: List[Dict[str, Any]] = []
+    last_error: Optional[Exception] = None
+    for folder in ('inbox', 'junk'):
+        try:
+            data = client.get_mail_messages(login, folder=folder, limit=1)
+        except ShopApiError as e:
+            if e.code in ('mailbox_not_found', 'mailbox_dead', 'forbidden', 'unauthorized', 'invalid_key'):
+                raise
+            last_error = e
+            continue
+        except Exception as e:
+            last_error = e
+            continue
+        messages = data.get('messages') if isinstance(data, dict) else []
+        if isinstance(messages, list) and messages:
+            item = dict(messages[0]) if isinstance(messages[0], dict) else {}
+            if item:
+                item['_folder'] = folder
+                candidates.append(item)
+    if candidates:
+        return max(candidates, key=lambda item: str(item.get('date') or ''))
+    if last_error is not None:
+        raise last_error
+    return None
+def _format_mail_message(login: str, item: Dict[str, Any]) -> str:
+    folder = 'Спам' if str(item.get('_folder') or '') == 'junk' else 'Входящие'
+    subject = str(item.get('subject') or 'Без темы').strip()
+    sender = str(item.get('from') or '—').strip()
+    date = str(item.get('date') or '—').strip()
+    preview = re.sub(r'\s+', ' ', str(item.get('preview') or '').strip())[:1400]
+    found_lines = []
+    found = item.get('found') if isinstance(item.get('found'), list) else []
+    for value in found[:10]:
+        if not isinstance(value, dict):
+            continue
+        service = str(value.get('service') or 'Код/данные').strip()
+        data = str(value.get('value') or '').strip()
+        if data:
+            found_lines.append(f'• {service}: {data}')
+    parts = [f'📬 Последнее письмо для {login}', f'📁 {folder}', f'👤 От: {sender}', f'📝 Тема: {subject}', f'🕒 Дата: {date}']
+    if found_lines:
+        parts.extend(['', '🔐 Найдено:', *found_lines])
+    if preview:
+        parts.extend(['', '💬 Текст:', preview])
+    return '\n'.join(parts)
+def _handle_mail_command(event: Any, msg: Any, text: str) -> bool:
+    login = _mail_login_from_text(text)
+    if not login:
+        return False
+    chat_id = _message_chat_id(event, msg)
+    if not _mail_command_claim(event, msg, chat_id, text):
+        return True
+    if not cfg_get('buyer_mail_command_enabled'):
+        if chat_id is not None:
+            _fp_send(chat_id, '📭 Получение писем командой !mail сейчас отключено продавцом.')
+        return True
+    if not _mail_access_allowed(login, chat_id):
+        if chat_id is not None:
+            _fp_send(chat_id, '⛔ Эта почта не выдавалась в этом чате через плагин, поэтому читать её письма здесь нельзя.')
+        _log_event('mail_command_denied', level=logging.WARNING, login=login, chat_id=chat_id)
+        return True
+    try:
+        item = _latest_mail_message(login)
+        if item is None:
+            _fp_send(chat_id, f'📭 Для {login} пока нет писем во входящих или спаме.')
+        else:
+            _fp_send(chat_id, _format_mail_message(login, item))
+        _log_event('mail_command_ok', login=login, chat_id=chat_id, has_message=bool(item))
+    except ShopApiError as e:
+        if e.code == 'mailbox_dead':
+            human = 'Почтовый ящик больше недоступен для чтения через API.'
+        elif e.code == 'mailbox_not_found':
+            human = 'Mail API не видит этот ящик среди купленных на текущем API-аккаунте.'
+        elif e.code in ('forbidden', 'unauthorized', 'invalid_key'):
+            human = 'У Mail API-ключа нет доступа к чтению писем. Проверьте или пересоздайте ключ.'
+        elif e.code == 'no_api_key':
+            human = 'Mail API-ключ не настроен у продавца.'
+        else:
+            human = e.message or e.code
+        _fp_send(chat_id, f'❌ Не удалось получить письмо: {human}')
+        _log_event('mail_command_api_error', level=logging.WARNING, login=login, chat_id=chat_id, code=e.code)
+    except Exception as e:
+        _fp_send(chat_id, '❌ Не удалось получить письмо из-за временной ошибки. Попробуйте ещё раз позже.')
+        _log_event('mail_command_error', level=logging.ERROR, login=login, chat_id=chat_id, error=str(e)[:200])
+    return True
 def handle_new_message(cardinal_obj, event, *args) -> None:
     global cardinal
     if cardinal is None:
@@ -2103,6 +2311,8 @@ def handle_new_message(cardinal_obj, event, *args) -> None:
         return
     msg = getattr(event, 'message', None) or event
     text = _clean_text(str(getattr(msg, 'content', None) or getattr(msg, 'text', None) or ''))
+    if _handle_mail_command(event, msg, text):
+        return
     m = ORDER_PAID_RE.search(text)
     if not m:
         return
@@ -2573,7 +2783,7 @@ def _menu_plugin_settings(chat_id, message_id=None) -> None:
         database_count = len(meta['databases'])
     except Exception:
         database_count = 0
-    text = f'⚙️ <b>Настройки плагина</b>\n\n• Состояние: <b>{"🟢 включён" if cfg_get("plugin_enabled") else "🔴 выключен"}</b>\n• Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n• Автодеактивация: <b>{_onoff("auto_lots_by_stock")}</b>\n• Автовключение после пополнения API: <b>{_onoff("auto_reenable_api_lots")}</b>\n• Уведомления: <b>{notifications}</b>\n• Баз аккаунтов: <b>{database_count}</b>\n\nВыберите категорию:'
+    text = f'⚙️ <b>Настройки плагина</b>\n\n• Состояние: <b>{"🟢 включён" if cfg_get("plugin_enabled") else "🔴 выключен"}</b>\n• Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n• Автодеактивация: <b>{_onoff("auto_lots_by_stock")}</b>\n• Автовключение после пополнения API: <b>{_onoff("auto_reenable_api_lots")}</b>\n• Команда !mail покупателям: <b>{_onoff("buyer_mail_command_enabled")}</b>\n• Уведомления: <b>{notifications}</b>\n• Баз аккаунтов: <b>{database_count}</b>\n\nВыберите категорию:'
     kb = _make_kb([[('🧩 Состояние плагина', 'd4s_plugin_state')], [('📦 Заказы', 'd4s_order_set')], [('🔔 Уведомления', 'd4s_notifications')], [('🛡 Безопасность', 'd4s_safety')], [('🗃 Базы аккаунтов', 'd4s_databases')], [('🧰 Обслуживание', 'd4s_maintenance')], [('🔙 Назад', 'd4s_main')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_plugin_state(chat_id, message_id=None) -> None:
@@ -2582,8 +2792,8 @@ def _menu_plugin_state(chat_id, message_id=None) -> None:
     kb = _make_kb([[(f'🧩 Плагин: {"ВКЛ" if enabled else "ВЫКЛ"}', 'd4s_ptgl:plugin_enabled')], [('🔙 Назад', 'd4s_plugin_set')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_order_settings(chat_id, message_id=None) -> None:
-    text = f'📦 <b>Настройки заказов</b>\n\n↩️ Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n🔌 Автодеактивация лотов при отсутствии товара: <b>{_onoff("auto_lots_by_stock")}</b>\n🔄 Автовключение API-лотов после пополнения: <b>{_onoff("auto_reenable_api_lots")}</b>\n\nСообщения покупателю можно менять отдельно, не редактируя код.'
-    kb = _make_kb([[(f'↩️ Авто-возврат: {_onoff("auto_refund_enabled")}', 'd4s_otgl:auto_refund_enabled')], [(f'🔌 Автодеактивация: {_onoff("auto_lots_by_stock")}', 'd4s_otgl:auto_lots_by_stock')], [(f'🔄 Включать после пополнения: {_onoff("auto_reenable_api_lots")}', 'd4s_otgl:auto_reenable_api_lots')], [('💬 Сообщения покупателю', 'd4s_messages')], [('🔙 Назад', 'd4s_plugin_set')]])
+    text = f'📦 <b>Настройки заказов</b>\n\n↩️ Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n🔌 Автодеактивация лотов при отсутствии товара: <b>{_onoff("auto_lots_by_stock")}</b>\n🔄 Автовключение API-лотов после пополнения: <b>{_onoff("auto_reenable_api_lots")}</b>\n📬 Команда <code>!mail_почта</code> покупателям: <b>{_onoff("buyer_mail_command_enabled")}</b>\n\n'
+    kb = _make_kb([[(f'↩️ Авто-возврат: {_onoff("auto_refund_enabled")}', 'd4s_otgl:auto_refund_enabled')], [(f'🔌 Автодеактивация: {_onoff("auto_lots_by_stock")}', 'd4s_otgl:auto_lots_by_stock')], [(f'🔄 Включать после пополнения: {_onoff("auto_reenable_api_lots")}', 'd4s_otgl:auto_reenable_api_lots')], [(f'📬 !mail покупателям: {_onoff("buyer_mail_command_enabled")}', 'd4s_otgl:buyer_mail_command_enabled')], [('💬 Сообщения покупателю', 'd4s_messages')], [('🔙 Назад', 'd4s_plugin_set')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_notifications(chat_id, message_id=None) -> None:
     text = f'🔔 <b>Уведомления</b>\n\nВсе уведомления: <b>{_onoff("notifications_enabled")}</b>\nПорог низкого баланса: <b>{float(cfg_get("low_balance_threshold_rub") or 0):.0f} ₽</b>\nПроверка баланса: <b>раз в {int(cfg_get("balance_check_interval_min") or 10)} мин.</b>\n\nКаждый тип можно включить или выключить отдельно.'
@@ -2835,7 +3045,7 @@ def _validate_funpay_lot(lot_id: str) -> Dict[str, Any]:
     item = {'lot_id': str(lot_id), 'title': _lot_field_title(fields, str(lot_id)), 'active': bool(getattr(fields, 'active', True))}
     _cache_funpay_lot(item)
     return item
-def _discover_funpay_lots() -> Dict[str, Any]:
+def _discover_funpay_lots(all_categories: bool=False) -> Dict[str, Any]:
     global _last_lot_discovery_ts, _last_lot_discovery_report
     if cardinal is None:
         raise ValueError('Cardinal ещё не инициализирован')
@@ -2865,23 +3075,24 @@ def _discover_funpay_lots() -> Dict[str, Any]:
             except Exception:
                 pass
     account = cardinal.account
-    for category_id in AUTO_LOT_CATEGORIES:
-        try:
-            category_lots = account.get_my_subcategory_lots(int(category_id)) or []
-            category_ids = set()
-            for lot in category_lots:
-                try:
-                    lot_id = int(getattr(lot, 'id'))
-                    if lot_id > 0:
-                        category_ids.add(str(lot_id))
-                except Exception:
-                    pass
-                collect(lot)
-            category_counts[category_id] = len(category_ids)
-        except Exception as e:
-            category_failures += 1
-            logger.warning(f'{LP} get_my_subcategory_lots({category_id}): {e}')
-    if category_failures == len(AUTO_LOT_CATEGORIES):
+    if not all_categories:
+        for category_id in AUTO_LOT_CATEGORIES:
+            try:
+                category_lots = account.get_my_subcategory_lots(int(category_id)) or []
+                category_ids = set()
+                for lot in category_lots:
+                    try:
+                        lot_id = int(getattr(lot, 'id'))
+                        if lot_id > 0:
+                            category_ids.add(str(lot_id))
+                    except Exception:
+                        pass
+                    collect(lot)
+                category_counts[category_id] = len(category_ids)
+            except Exception as e:
+                category_failures += 1
+                logger.warning(f'{LP} get_my_subcategory_lots({category_id}): {e}')
+    if all_categories or category_failures == len(AUTO_LOT_CATEGORIES):
         try:
             updater = getattr(cardinal, 'update_lots_and_categories', None)
             if callable(updater):
@@ -2925,9 +3136,10 @@ def _discover_funpay_lots() -> Dict[str, Any]:
             else:
                 errors += 1
     _save_funpay_lot_cache(found)
-    report = {'found': len(found), 'errors': errors, 'category_counts': category_counts}
-    _last_lot_discovery_ts = time.time()
-    _last_lot_discovery_report = report
+    report = {'found': len(found), 'errors': errors, 'category_counts': category_counts, 'scope': 'all' if all_categories else 'auto'}
+    if not all_categories:
+        _last_lot_discovery_ts = time.time()
+        _last_lot_discovery_report = report
     return report
 def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
     if _is_lot_ignored(str(lot_id)):
@@ -3140,8 +3352,9 @@ def _menu_lot_settings(chat_id, message_id=None, page: int=0) -> None:
     with _bindings_lock:
         mappings = {str(k): _normalize_binding(v) for k, v in _bindings.items()}
     counts = report.get('category_counts', {}) if isinstance(report, dict) else {}
-    text = f'🔗 <b>Настройки лотов</b>\n\nАвтопоиск категорий: 89: <b>{int(counts.get(89, 0) or 0)}</b> · 1350: <b>{int(counts.get(1350, 0) or 0)}</b> · 938: <b>{int(counts.get(938, 0) or 0)}</b>\nНайдено FunPay-лотов: <b>{len(lots)}</b>\nНастроено: <b>{len(mappings)}</b>\n\nВыберите лот. Для каждого можно выбрать покупку при заказе или выдачу из заранее пополненной базы.\nСтраница {page + 1}/{pages}.'
-    rows = [[('🔄 Найти лоты', 'd4s_lot_discover'), ('➕ Добавить LOT ID', 'd4s_lot_manual')]]
+    category_text = ' · '.join(f'{category_id}: <b>{int(counts.get(category_id, 0) or 0)}</b>' for category_id in AUTO_LOT_CATEGORIES)
+    text = f'🔗 <b>Настройки лотов</b>\n\nАвтопоиск категорий: {category_text}\nНайдено FunPay-лотов: <b>{len(lots)}</b>\nНастроено: <b>{len(mappings)}</b>\n\n«Автопоиск» ищет только целевые категории. «Все категории» вручную собирает все доступные ваши лоты. LOT ID можно добавить напрямую из любой категории.\nСтраница {page + 1}/{pages}.'
+    rows = [[('🔄 Автопоиск', 'd4s_lot_discover'), ('🌐 Все категории', 'd4s_lot_discover_all')], [('➕ Добавить LOT ID', 'd4s_lot_manual')]]
     for lot in lots[page * 8:(page + 1) * 8]:
         lot_id = str(lot.get('lot_id'))
         state = '🟢' if lot.get('active', True) else '🔴'
@@ -3873,11 +4086,20 @@ def _cb_router(call) -> None:
     elif action == 'd4s_lot_discover':
         ack('Ищу лоты…')
         try:
-            report = _discover_funpay_lots()
+            report = _discover_funpay_lots(False)
             counts = report.get('category_counts', {})
-            _tg_send(chat_id, f"✅ Категория 89: {int(counts.get(89, 0) or 0)} лотов. Категория 1350: {int(counts.get(1350, 0) or 0)} лотов. Категория 938: {int(counts.get(938, 0) or 0)} лотов. Всего уникальных: {report['found']}. Ошибок чтения: {report['errors']}.")
+            details = ' · '.join(f'{category_id}: {int(counts.get(category_id, 0) or 0)}' for category_id in AUTO_LOT_CATEGORIES)
+            _tg_send(chat_id, f"✅ Автопоиск: {details}. Всего уникальных: {report['found']}. Ошибок чтения: {report['errors']}.")
         except Exception as e:
             _tg_send(chat_id, f'❌ Не удалось найти лоты: {str(e)[:180]}')
+        _menu_lot_settings(chat_id, message_id)
+    elif action == 'd4s_lot_discover_all':
+        ack('Ищу по всем категориям…')
+        try:
+            report = _discover_funpay_lots(True)
+            _tg_send(chat_id, f"✅ Ручной поиск по всем доступным категориям завершён. Найдено уникальных лотов: {report['found']}. Ошибок чтения: {report['errors']}.")
+        except Exception as e:
+            _tg_send(chat_id, f'❌ Не удалось найти лоты по всем категориям: {str(e)[:180]}')
         _menu_lot_settings(chat_id, message_id)
     elif action == 'd4s_lot_manual':
         _waiting[chat_id] = {'action': 'lot_manual_id'}
@@ -4037,7 +4259,7 @@ def _cb_router(call) -> None:
         ack()
         _menu_plugin_state(chat_id, message_id)
     elif action == 'd4s_otgl':
-        if arg in ('auto_refund_enabled', 'auto_lots_by_stock', 'auto_reenable_api_lots'):
+        if arg in ('auto_refund_enabled', 'auto_lots_by_stock', 'auto_reenable_api_lots', 'buyer_mail_command_enabled'):
             cfg_set(arg, not cfg_get(arg))
         ack()
         _menu_order_settings(chat_id, message_id)
@@ -5002,6 +5224,8 @@ def d4s_pre_init(c, *args) -> None:
     save_json(AUTO_DISABLED_FILE, _auto_disabled)
     if not Path(ORDER_LOG_FILE).exists() or _raw_json(Path(ORDER_LOG_FILE), list) is None:
         save_json(ORDER_LOG_FILE, [])
+    if not Path(MAIL_ACCESS_FILE).exists() or _raw_json(Path(MAIL_ACCESS_FILE), dict) is None:
+        save_json(MAIL_ACCESS_FILE, {})
     if not Path(STATS_FILE).exists() or _raw_json(Path(STATS_FILE), dict) is None:
         save_json(STATS_FILE, dict(DEFAULT_STATS))
     try:
