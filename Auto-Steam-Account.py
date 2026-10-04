@@ -16,6 +16,14 @@ from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote
 import requests
 try:
+    from bs4 import BeautifulSoup
+except Exception:
+    BeautifulSoup = None
+try:
+    from FunPayAPI import types as fp_types
+except Exception:
+    fp_types = None
+try:
     from tg_bot import CBT as _CBT
 except Exception:
     _CBT = None
@@ -24,7 +32,7 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.2.0'
+VERSION = '1.2.1'
 DESCRIPTION = 'Авто-закупка и выдача Steam-аккаунтов и Outlook-почт через API или локальные базы на FunPay'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
@@ -391,6 +399,7 @@ BUYER_MSG_LIMIT = 900
 BUYER_MSG_MAX_LINES = 10
 API_QTY_MAX = 100
 MAIL_PRODUCT_TITLE = 'Почты Hotmail / Outlook'
+RIOT_PRODUCT_TITLE = 'Valorant / Riot'
 TAG_RE = re.compile('d4s:(\\d+)')
 ORDER_PAID_RE = re.compile('оплатил(?:а)? заказ\\s*#([A-Za-z0-9]+)')
 INVISIBLE_RE = re.compile('[\u2061\u200b\u200c\u200d\ufeff]')
@@ -1282,9 +1291,65 @@ def _rename_group(old: str, new: str) -> int:
         if n:
             _save_bindings()
     return n
+def _get_lot_fields_safe(lot_id: str):
+    try:
+        return cardinal.account.get_lot_fields(int(lot_id))
+    except Exception as primary_error:
+        if BeautifulSoup is None or fp_types is None:
+            raise
+        try:
+            response = cardinal.account.method('get', f'lots/offerEdit?offer={int(lot_id)}', {}, {}, raise_not_200=True)
+            parser = BeautifulSoup(response.content.decode(), 'lxml')
+            form = parser.find('form', class_='form-offer-editor')
+            if form is None:
+                raise RuntimeError('FunPay не вернул форму редактирования лота')
+            fields: Dict[str, str] = {}
+            for field in form.find_all('input'):
+                name = field.get('name')
+                if not name:
+                    continue
+                field_type = str(field.get('type') or '').lower()
+                if field_type == 'checkbox':
+                    if field.has_attr('checked'):
+                        fields[str(name)] = 'on'
+                    continue
+                fields[str(name)] = str(field.get('value') or '')
+            for field in form.find_all('textarea'):
+                name = field.get('name')
+                if name:
+                    fields[str(name)] = str(field.text or '')
+            for field in form.find_all('select'):
+                name = field.get('name')
+                if not name:
+                    continue
+                parent = field.find_parent(class_='form-group')
+                classes = list(parent.get('class') or []) if parent is not None else []
+                if 'hidden' in classes:
+                    continue
+                option = field.find('option', selected=True) or field.find('option')
+                if option is not None:
+                    fields[str(name)] = str(option.get('value') or '')
+            fields.setdefault('offer_id', str(int(lot_id)))
+            csrf = getattr(cardinal.account, 'csrf_token', None)
+            if csrf and not fields.get('csrf_token'):
+                fields['csrf_token'] = str(csrf)
+            lot_fields = fp_types.LotFields(int(lot_id), fields)
+            _log_event('funpay_lot_fields_fallback', lot_id=lot_id, reason=str(primary_error)[:160])
+            return lot_fields
+        except Exception as fallback_error:
+            raise RuntimeError(f'{primary_error}; fallback: {fallback_error}') from fallback_error
+
+def _save_lot_fields_safe(lot_fields: Any) -> None:
+    renew = getattr(lot_fields, 'renew_fields', None)
+    if callable(renew):
+        renewed = renew()
+        if renewed is not None:
+            lot_fields = renewed
+    cardinal.account.save_lot(lot_fields)
+
 def _sync_lot(lot_id: str, product_id: int) -> Tuple[Optional[str], bool, Optional[str]]:
     try:
-        lf = cardinal.account.get_lot_fields(int(lot_id))
+        lf = _get_lot_fields_safe(str(lot_id))
     except Exception as e:
         return (None, False, f'не удалось прочитать лот: {e}')
     title = (getattr(lf, 'title_ru', '') or getattr(lf, 'title_en', '') or '').strip()
@@ -1302,7 +1367,7 @@ def _sync_lot(lot_id: str, product_id: int) -> Tuple[Optional[str], bool, Option
             lf.description_en = base + ('\n\n' if base else '') + tag
             changed = True
         if changed:
-            cardinal.account.save_lot(lf)
+            _save_lot_fields_safe(lf)
     except Exception as e:
         return (title or None, False, f'тег не вписан: {e}')
     return (title or None, changed, None)
@@ -1319,11 +1384,11 @@ def _parse_lot_ids(text: str) -> List[str]:
 def _set_lot_active(lot_id: str, active: bool) -> bool:
     for attempt in range(3):
         try:
-            lf = cardinal.account.get_lot_fields(int(lot_id))
+            lf = _get_lot_fields_safe(str(lot_id))
             if bool(getattr(lf, 'active', None)) == active:
                 return True
             lf.active = active
-            cardinal.account.save_lot(lf)
+            _save_lot_fields_safe(lf)
             return True
         except Exception as e:
             logger.warning(f'{LP} set_lot_active({lot_id},{active}) attempt {attempt + 1}: {e}')
@@ -1380,7 +1445,7 @@ def _sync_binding_stock(lot_id: str, binding: Dict[str, Any]) -> Tuple[bool, int
     effective = max(0, int(_binding_effective_stock(binding, max_age=30.0) or 0))
     for attempt in range(4):
         try:
-            lf = cardinal.account.get_lot_fields(int(lot_id))
+            lf = _get_lot_fields_safe(str(lot_id))
             changed = False
             if bool(getattr(lf, 'auto_delivery', False)):
                 lf.auto_delivery = False
@@ -1396,7 +1461,7 @@ def _sync_binding_stock(lot_id: str, binding: Dict[str, Any]) -> Tuple[bool, int
                 lf.amount = effective
                 changed = True
             if changed:
-                cardinal.account.save_lot(lf)
+                _save_lot_fields_safe(lf)
                 _log_event('funpay_manual_stock_synced', lot_id=lot_id, amount=effective, provider=binding.get('api_provider'))
             return (True, effective)
         except Exception as e:
@@ -1413,12 +1478,12 @@ def _sync_fp_stock(lot_id: str, product_id: int) -> Tuple[bool, int]:
 def _disable_fp_autodelivery(lot_id: str) -> bool:
     for attempt in range(3):
         try:
-            lf = cardinal.account.get_lot_fields(int(lot_id))
+            lf = _get_lot_fields_safe(str(lot_id))
             if not bool(getattr(lf, 'auto_delivery', False)) and not list(getattr(lf, 'secrets', None) or []):
                 return True
             lf.auto_delivery = False
             lf.secrets = []
-            cardinal.account.save_lot(lf)
+            _save_lot_fields_safe(lf)
             _log_event('funpay_autodelivery_disabled', lot_id=lot_id)
             return True
         except Exception as e:
@@ -1537,7 +1602,7 @@ def _country_swapped_title(lot_title: str, src_product: str, dst_product: str) -
     return out if changed else None
 def _copy_lot(source_lot_id: str, product_id: int, dst_product_title: str, qty: int, group: str, src_product_title: str='') -> Tuple[Optional[str], Optional[str], Optional[str]]:
     try:
-        lf = cardinal.account.get_lot_fields(int(source_lot_id))
+        lf = _get_lot_fields_safe(str(source_lot_id))
     except Exception as e:
         return (None, None, None, f'не удалось прочитать исходный лот {source_lot_id}: {e}')
     subcat_id = getattr(getattr(lf, 'subcategory', None), 'id', None)
@@ -1570,7 +1635,7 @@ def _copy_lot(source_lot_id: str, product_id: int, dst_product_title: str, qty: 
         except Exception:
             pass
         try:
-            cardinal.account.save_lot(lf)
+            _save_lot_fields_safe(lf)
         except Exception as e:
             return (None, None, None, f'FunPay отклонил создание лота: {e}')
         time.sleep(2.5)
@@ -1866,6 +1931,7 @@ def _fulfill_database_order(od: Dict[str, Any]) -> Dict[str, Any]:
         od['step'] = 'delivering'
         od['database_reserved'] = len(values)
         _save_orders_state()
+    threading.Thread(target=_resync_database_lots, args=(database_id,), daemon=True).start()
     return {'status': 'ready', 'values': values, 'cost_kop': 0, 'source': 'database', 'database_id': database_id}
 def process_order(oid: str) -> None:
     with _orders_lock:
@@ -1940,7 +2006,9 @@ def process_order(oid: str) -> None:
     lot_key = od.get('lot_key')
     with _bindings_lock:
         binding = _normalize_binding(_bindings.get(lot_key or '') or {}) if lot_key else None
-    if binding and lot_key:
+    if delivery_mode == 'database' and str(od.get('database_id') or ''):
+        threading.Thread(target=_resync_database_lots, args=(str(od.get('database_id') or ''),), daemon=True).start()
+    elif binding and lot_key:
         threading.Thread(target=_sync_binding_stock, args=(str(lot_key), binding), daemon=True).start()
     bal_txt = ''
     if delivery_mode == 'api':
@@ -3041,7 +3109,7 @@ def _remove_lot_from_plugin(lot_id: str) -> None:
 def _validate_funpay_lot(lot_id: str) -> Dict[str, Any]:
     if cardinal is None or not str(lot_id).isdigit():
         raise ValueError('Некорректный LOT ID')
-    fields = cardinal.account.get_lot_fields(int(lot_id))
+    fields = _get_lot_fields_safe(str(lot_id))
     item = {'lot_id': str(lot_id), 'title': _lot_field_title(fields, str(lot_id)), 'active': bool(getattr(fields, 'active', True))}
     _cache_funpay_lot(item)
     return item
@@ -3160,6 +3228,7 @@ def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
     lines = [f"🏷 <b>{lot.get('title')}</b>", f'LOT ID: <code>{lot_id}</code>', f"FunPay: <b>{'🟢 включён' if lot.get('active', True) else '🔴 выключен'}</b>", '']
     mode = str(binding.get('delivery_mode') or 'api') if binding else ''
     mail = bool(binding and _binding_is_mail(binding))
+    riot = bool(binding and _binding_is_riot(binding))
     db = None
     if binding:
         if mode == 'database':
@@ -3169,7 +3238,7 @@ def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
             else:
                 source = f"🗃 {db.get('name')} — {db.get('product_title')}" if db else '🗃 база не найдена'
         else:
-            api_label = 'Mail API' if _provider_name(str(binding.get('api_provider') or 'steam')) == 'mail' else 'Steam API'
+            api_label = 'Mail API' if _provider_name(str(binding.get('api_provider') or 'steam')) == 'mail' else (RIOT_PRODUCT_TITLE if riot else 'Steam API')
             source = f"🌐 {api_label}: {binding.get('product_title')} (id {binding.get('product_id')})"
         stock_cached = _binding_effective_stock_cached(binding)
         stock_text = stock_cached if stock_cached is not None else '—'
@@ -3177,6 +3246,8 @@ def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
             mail_mode = '🌐 Покупать через Mail API' if mode == 'api' else '🗃 Выдавать из отдельной базы почт'
             lines.extend([f'Тип: <b>📧 {MAIL_PRODUCT_TITLE}</b>', f'Режим: <b>{mail_mode}</b>', f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Количество на FunPay: <b>{stock_text}</b>", f"Доступно продаж по источнику: <b>{stock_text}</b>"])
         else:
+            if riot:
+                lines.append(f'Тип: <b>🔴 {RIOT_PRODUCT_TITLE}</b>')
             lines.extend([f"Режим: <b>{'🗃 Выдавать из базы' if mode == 'database' else '🌐 Покупать при заказе'}</b>", f'Источник: <b>{source}</b>', f"За 1 единицу заказа: <b>×{_binding_qty_per_unit(binding)}</b>", f"Количество на FunPay: <b>{stock_text}</b>", f"Доступно продаж по источнику: <b>{stock_text}</b>"])
     else:
         lines.append('Лот ещё не настроен в плагине. Сначала выберите режим выдачи.')
@@ -3206,14 +3277,15 @@ def _menu_lot_detail(chat_id, message_id, lot_id: str) -> None:
                 rows.append([(f'🗃 База данных: {db_name[:28]}', f'd4s_lot_database:{lot_id}')])
             else:
                 product_title = str(binding.get('product_title') or 'не выбран')
-                rows.append([(f'🌐 Товар: {product_title[:30]}', f'd4s_lot_mode_api:{lot_id}')])
+                product_prefix = '🔴 Riot товар' if riot else '🌐 Товар'
+                rows.append([(f'{product_prefix}: {product_title[:30]}', f'd4s_lot_mode_api:{lot_id}')])
     if binding:
         rows.append([('🔢 Количество за покупку', f'd4s_lot_qty:{lot_id}')])
     rows.extend([[('🗑 Удалить лот', f'd4s_lot_delete_menu:{lot_id}')], [('🔙 К лотам', 'd4s_lot_set')]])
     _tg_edit(chat_id, message_id, '\n'.join(lines), _make_kb(rows)) if message_id else _tg_send(chat_id, '\n'.join(lines), _make_kb(rows))
 def _menu_lot_type_pick(chat_id, message_id, lot_id: str) -> None:
     text = '📦 <b>Тип товара лота</b>\n\nВыберите, что продаётся в этом лоте.'
-    rows = [[('🎮 Steam аккаунт', f'd4s_lot_type_steam:{lot_id}')], [('📧 Почты Hotmail / Outlook', f'd4s_lot_type_mail:{lot_id}')], [('🔙 К лотам', 'd4s_lot_set')]]
+    rows = [[('🎮 Steam аккаунт', f'd4s_lot_type_steam:{lot_id}')], [('🔴 Valorant / Riot', f'd4s_lot_type_riot:{lot_id}')], [('📧 Почты Hotmail / Outlook', f'd4s_lot_type_mail:{lot_id}')], [('🔙 К лотам', 'd4s_lot_set')]]
     kb = _make_kb(rows)
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _binding_is_mail(binding: Any) -> bool:
@@ -3223,6 +3295,35 @@ def _binding_is_mail(binding: Any) -> bool:
         return True
     database_id = str(binding.get('database_id') or '')
     return str(binding.get('delivery_mode') or '') == 'database' and bool(database_id) and _is_mail_database(_database_by_id(database_id))
+def _binding_is_riot(binding: Any) -> bool:
+    return isinstance(binding, dict) and str(binding.get('source_type') or '').lower() == 'riot'
+def _prepare_account_lot(lot_id: str, source_type: str='steam') -> Dict[str, Any]:
+    lot_id = str(lot_id)
+    source_type = 'riot' if str(source_type or '').lower() == 'riot' else 'steam'
+    lot = next((x for x in _cached_funpay_lots() if str(x.get('lot_id')) == lot_id), {})
+    with _bindings_lock:
+        old_raw = dict(_bindings.get(lot_id) or {})
+        old = _normalize_binding(old_raw)
+        was_mail = _binding_is_mail(old_raw)
+        binding = {
+            'product_id': 0 if was_mail else int(old.get('product_id') or 0),
+            'product_title': '' if was_mail else str(old.get('product_title') or ''),
+            'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'),
+            'group': old.get('group') or '',
+            'enabled': old.get('enabled', True),
+            'delivery_mode': 'api' if was_mail else str(old.get('delivery_mode') or 'api'),
+            'database_id': '' if was_mail else str(old.get('database_id') or ''),
+            'source_type': source_type,
+            'api_provider': 'steam',
+            'qty_per_unit': old.get('qty_per_unit', 1),
+            'qty': old.get('qty_per_unit', 1),
+            'fp_stock_target': 0,
+            'fp_auto': False
+        }
+        _bindings[lot_id] = _normalize_binding(binding)
+        _save_bindings()
+    _disable_fp_autodelivery(lot_id)
+    return _bindings[lot_id]
 def _configure_mail_lot(lot_id: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     lot_id = str(lot_id)
     db = _create_mail_database(lot_id)
@@ -3252,9 +3353,19 @@ def _menu_lot_mode_pick(chat_id, message_id, lot_id: str) -> None:
         raw = _bindings.get(str(lot_id))
     binding = _normalize_binding(raw) if raw else None
     mail = bool(binding and _binding_is_mail(binding))
+    riot = bool(binding and _binding_is_riot(binding))
     current = str(binding.get('delivery_mode') or '') if binding else ''
-    api_label = ('✅ ' if current == 'api' else '') + ('🌐 Покупать почту через Mail API' if mail else '🌐 Покупать при заказе')
-    db_label = ('✅ ' if current == 'database' else '') + ('🗃 Выдавать из локальной базы почт' if mail else '🗃 Выдавать из базы данных')
+    if mail:
+        api_text = '🌐 Покупать почту через Mail API'
+        db_text = '🗃 Выдавать из локальной базы почт'
+    elif riot:
+        api_text = '🔴 Покупать Valorant / Riot при заказе'
+        db_text = '🗃 Выдавать Valorant / Riot из базы данных'
+    else:
+        api_text = '🌐 Покупать при заказе'
+        db_text = '🗃 Выдавать из базы данных'
+    api_label = ('✅ ' if current == 'api' else '') + api_text
+    db_label = ('✅ ' if current == 'database' else '') + db_text
     api_cb = f'd4s_lot_mode_mailapi:{lot_id}' if mail else f'd4s_lot_mode_api:{lot_id}'
     db_cb = f'd4s_lot_mode_maildb:{lot_id}' if mail else f'd4s_lot_mode_db:{lot_id}'
     rows = [[(api_label, api_cb)], [(db_label, db_cb)], [('🔙 Назад', f'd4s_lot_pick:{lot_id}')]]
@@ -3275,7 +3386,9 @@ def _menu_lot_api_products(chat_id, message_id, lot_id: str, page: int=0, provid
     if pages > 1:
         rows.append([('⬅️', f'{page_action}:{lot_id}:{max(0,page-1)}'), (f'{page+1}/{pages}', 'd4s_noop'), ('➡️', f'{page_action}:{lot_id}:{min(pages-1,page+1)}')])
     rows.append([('❌ Отмена', f'd4s_lot_pick:{lot_id}')])
-    title = 'Mail API' if provider == 'mail' else 'Steam API'
+    with _bindings_lock:
+        lot_binding = dict(_bindings.get(str(lot_id)) or {})
+    title = 'Mail API' if provider == 'mail' else (RIOT_PRODUCT_TITLE if _binding_is_riot(lot_binding) else 'Steam API')
     _tg_edit(chat_id, message_id, f'🌐 <b>Покупать при заказе · {title}</b>\n\nВыберите товар. При оплате FunPay плагин купит нужное количество через выбранный API.', _make_kb(rows))
 def _menu_lot_database_pick(chat_id, message_id, lot_id: str) -> None:
     meta = _load_databases_meta()
@@ -3320,11 +3433,11 @@ def _configure_lot_database(lot_id: str, database_id: str) -> Dict[str, Any]:
     with _bindings_lock:
         old = _normalize_binding(_bindings.get(str(lot_id)) or {})
         lot = next((x for x in _cached_funpay_lots() if str(x.get('lot_id')) == str(lot_id)), {})
-        binding = {'product_id': int(db['product_id']), 'product_title': str(db['product_title']), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'database', 'database_id': str(database_id), 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
+        binding = {'product_id': int(db['product_id']), 'product_title': str(db['product_title']), 'lot_name': str(lot.get('title') or old.get('lot_name') or f'LOT {lot_id}'), 'group': old.get('group') or '', 'enabled': old.get('enabled', True), 'delivery_mode': 'database', 'database_id': str(database_id), 'source_type': old.get('source_type', ''), 'api_provider': old.get('api_provider', 'steam'), 'qty_per_unit': old.get('qty_per_unit', 1), 'qty': old.get('qty_per_unit', 1), 'fp_stock_target': 0, 'fp_auto': False}
         _bindings[str(lot_id)] = _normalize_binding(binding)
         _save_bindings()
     _apply_lot_sync(str(lot_id), int(db['product_id']))
-    _sync_binding_stock(str(lot_id), _bindings[str(lot_id)])
+    _resync_database_lots(str(database_id))
     return _bindings[str(lot_id)]
 def _menu_lot_delete_options(chat_id, message_id, lot_id: str) -> None:
     text = f'🗑 <b>Удаление лота {lot_id}</b>\n\nВыберите, что именно удалить.'
@@ -4110,9 +4223,25 @@ def _cb_router(call) -> None:
         if st.get('action') != 'lot_manual_type' or str(st.get('lot_id') or '') != str(arg):
             ack('Сессия добавления истекла')
             return
-        _waiting.pop(chat_id, None)
-        ack()
-        _menu_lot_mode_pick(chat_id, message_id, arg)
+        try:
+            _prepare_account_lot(arg, 'steam')
+            _waiting.pop(chat_id, None)
+            ack('Тип сохранён')
+            _menu_lot_mode_pick(chat_id, message_id, arg)
+        except Exception as e:
+            ack(str(e)[:110])
+    elif action == 'd4s_lot_type_riot':
+        st = _waiting.get(chat_id) or {}
+        if st.get('action') != 'lot_manual_type' or str(st.get('lot_id') or '') != str(arg):
+            ack('Сессия добавления истекла')
+            return
+        try:
+            _prepare_account_lot(arg, 'riot')
+            _waiting.pop(chat_id, None)
+            ack('Тип Valorant / Riot сохранён')
+            _menu_lot_mode_pick(chat_id, message_id, arg)
+        except Exception as e:
+            ack(str(e)[:110])
     elif action == 'd4s_lot_type_mail':
         st = _waiting.get(chat_id) or {}
         if st.get('action') != 'lot_manual_type' or str(st.get('lot_id') or '') != str(arg):
@@ -4197,7 +4326,6 @@ def _cb_router(call) -> None:
         try:
             binding = _configure_lot_database(lot_id, database_id)
             ack('Режим сохранён')
-            threading.Thread(target=_sync_binding_stock, args=(lot_id, binding), daemon=True).start()
         except Exception as e:
             ack(str(e)[:110])
         _menu_lot_detail(chat_id, message_id, lot_id)
