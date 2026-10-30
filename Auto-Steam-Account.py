@@ -1,4 +1,5 @@
 from __future__ import annotations
+import queue
 import base64
 import json
 import logging
@@ -33,7 +34,7 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.4.0'
+VERSION = '1.5.0'
 DESCRIPTION = 'пупупу'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
@@ -80,7 +81,7 @@ LOG_FILE = os.path.join(LOG_DIR, 'plugin.log')
 DEFAULT_BUYER_MESSAGES: Dict[str, str] = {'payment_received': '➖➖➖➖➖➖➖➖\n✅ Оплата получена! Выдаю товар, обычно это занимает меньше минуты…\n➖➖➖➖➖➖➖➖', 'goods_header': '🚨🚨🚨 ИНСТРУКЦИЯ ПО ВХОДУ В ПОЧТУ 🚨🚨🚨\n\n📧 Вход в почту: https://outlook.office.com/mail/\nДанные форматом:\nлогин стим:пароль стим:почта:пароль от почты\n\n‼️ Для входа в почту используйте ПОСЛЕДНИЕ два значения (после 2-го двоеточия) ‼️\n\n📎 Видеоинструкция гугл диск — https://drive.google.com/file/d/1iIi7BW6eI8Yl4q465jUD-J0BgVqUXcUd/view?usp=sharing', 'riot_goods_header': '🔴 Ваши данные Valorant / Riot:\n\nДанные ниже выданы магазином в исходном формате.', 'tiktok_goods_header': '🎵 Ваши данные TikTok:\n\nДанные ниже выданы магазином в исходном формате.', 'mail_goods_header': '📧 Ваши данные Outlook / Hotmail:\n\n📨 Вход: https://outlook.office.com/mail/\nДанные ниже выданы магазином в исходном формате.\n\n📬 Последнее письмо можно запросить в этом чате командой: !mail_ваша@почта', 'goods_footer': '🙏 Проверьте товар и подтвердите заказ:\n{order_url}\n⭐ Будем рады отзыву!\n➖➖➖➖➖➖➖➖', 'refund': '➖➖➖➖➖➖➖➖\n😔 К сожалению, выдать товар по заказу #{order_id} не получилось.\n💸 Деньги возвращены. Приносим извинения!\n➖➖➖➖➖➖➖➖', 'delay': '➖➖➖➖➖➖➖➖\n⏳ Возникла задержка с выдачей заказа #{order_id}.\nПродавец уже уведомлён и решит вопрос в ближайшее время.\n➖➖➖➖➖➖➖➖'}
 LEGACY_DEFAULT_GOODS_HEADER = '✅ Ваш товар по заказу #{order_id}:'
 BUYER_MESSAGE_LABELS = {'payment_received': 'Оплата получена', 'goods_header': 'Заголовок выдачи Steam', 'riot_goods_header': 'Заголовок выдачи Riot', 'tiktok_goods_header': 'Заголовок выдачи TikTok', 'mail_goods_header': 'Заголовок выдачи Outlook', 'goods_footer': 'После выдачи', 'refund': 'Возврат денег', 'delay': 'Задержка / ручная проверка'}
-DEFAULT_CONFIG: Dict[str, Any] = {'api_key': '', 'base_url': 'https://api.dim4n4ik.shop', 'steam_api_key': '', 'steam_base_url': 'https://api.dim4n4ik.shop', 'mail_api_key': '', 'mail_base_url': 'https://mailapi.dim4n4ik.shop', 'plugin_enabled': True, 'auto_refund_enabled': False, 'low_balance_threshold_rub': 100.0, 'balance_check_interval_min': 10, 'notifications_enabled': True, 'notify_new_order': True, 'notify_success': True, 'notify_failure': True, 'notify_errors': True, 'notify_low_balance': True, 'notify_out_of_stock': True, 'buyer_messages': dict(DEFAULT_BUYER_MESSAGES), 'hidden_categories': None, 'auto_lots_by_stock': True, 'auto_reenable_api_lots': True, 'fp_auto_buffer': 25, 'fp_auto_sync_sec': 60, 'loss_protection': True, 'loss_min_margin_percent': 0, 'match_by_title': False, 'lot_cache': [], 'ignored_lot_ids': [], 'mail_catalog_migrated': False, 'buyer_mail_command_enabled': True, 'wholesale_enabled': False, 'wholesale_command': '!опт', 'wholesale_lot_ttl_min': 30, 'wholesale_price_basis': 'seller'}
+DEFAULT_CONFIG: Dict[str, Any] = {'api_key': '', 'base_url': 'https://api.dim4n4ik.shop', 'steam_api_key': '', 'steam_base_url': 'https://api.dim4n4ik.shop', 'mail_api_key': '', 'mail_base_url': 'https://mailapi.dim4n4ik.shop', 'plugin_enabled': True, 'format_account_data': True, 'auto_refund_enabled': False, 'low_balance_threshold_rub': 100.0, 'balance_check_interval_min': 10, 'notifications_enabled': True, 'notify_new_order': True, 'notify_success': True, 'notify_failure': True, 'notify_errors': True, 'notify_low_balance': True, 'notify_out_of_stock': True, 'buyer_messages': dict(DEFAULT_BUYER_MESSAGES), 'hidden_categories': None, 'auto_lots_by_stock': True, 'auto_reenable_api_lots': True, 'fp_auto_buffer': 25, 'fp_auto_sync_sec': 60, 'loss_protection': True, 'loss_min_margin_percent': 0, 'match_by_title': False, 'lot_cache': [], 'ignored_lot_ids': [], 'mail_catalog_migrated': False, 'buyer_mail_command_enabled': True, 'wholesale_enabled': False, 'wholesale_command': '!опт', 'wholesale_lot_ttl_min': 30, 'wholesale_price_basis': 'seller'}
 DEFAULT_STATS: Dict[str, Any] = {'total_orders': 0, 'total_failed': 0, 'total_qty': 0, 'total_revenue_rub': 0.0, 'total_cost_rub': 0.0, 'items': {}, 'last_order_at': ''}
 _STORAGE_TYPES = {'settings.json': dict, 'bindings.json': dict, 'pending_orders.json': dict, 'processed_orders.json': dict, 'order_log.json': list, 'mail_access.json': dict, 'stats.json': dict, 'auto_disabled_lots.json': dict, 'databases.json': dict, 'wholesale_lots.json': dict}
 FUNPAY_ORDER_QTY_MAX = 10
@@ -824,7 +825,7 @@ def _replenish_database(database_id: str, qty: int) -> Dict[str, Any]:
         raise ValueError(f'В магазине доступно только {stock} шт.')
     idem = f"db-{database_id}-{int(time.time() * 1000)}-{random.randint(1000, 9999)}"
     product = next((it for it in _get_catalog_cached(max_age=0) if int(it.get('id', -1)) == int(db['product_id'])), None)
-    if product and str(product.get('kind') or '').lower() == 'tiktok':
+    if _database_source_type(db) == 'tiktok' or (product and _catalog_product_type(product) == 'tiktok'):
         raise ValueError('TikTok API-товары нельзя пополнять в текстовую базу: у них есть cookies_b64. Используйте режим «Покупать TikTok аккаунты через API».')
     response = client.create_order(int(db['product_id']), qty, idem)
     _catalog_cache['ts'] = 0.0
@@ -1151,6 +1152,17 @@ def _mark_order_delivered(order_id: str) -> None:
         _processed[oid] = time.time()
         _save_orders_state()
     _log_event('order_delivered_marker', order_id=oid)
+def _format_account_data(value: str) -> str:
+    original = str(value).strip()
+    parts = original.split(':')
+    if len(parts) not in (4, 6) or not all(part.strip() for part in parts):
+        return original
+    parts = [part.strip() for part in parts]
+    result = f'Логин: {parts[0]}\nПароль: {parts[1]}\nПочта: {parts[2]}\nПароль: {parts[3]}'
+    if len(parts) == 6:
+        result += f'\n\nРезервная почта: {parts[4]}\nПароль от резервной почты: {parts[5]}'
+    return result if len(result) <= BUYER_MSG_LIMIT else original
+
 def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: List[str], product_title: str='', qty: int=0, api_provider: str='steam', source_type: str='steam') -> Dict[str, Any]:
     order_url = f'https://funpay.com/orders/{order_id}/'
     source_type = str(source_type or '').lower()
@@ -1163,6 +1175,10 @@ def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: L
     else:
         header_key = 'goods_header'
     header = _buyer_message(header_key, order_id=order_id, order_url=order_url, product_title=product_title, qty=qty)
+    format_enabled = bool(cfg_get('format_account_data')) and header_key != 'mail_goods_header'
+    if format_enabled and any(_format_account_data(str(v)) != str(v).strip() for v in values):
+        if header == DEFAULT_BUYER_MESSAGES.get(header_key):
+            header = {'goods_header': '🎮 Ваши данные Steam:', 'riot_goods_header': '🔴 Ваши данные Valorant / Riot:', 'tiktok_goods_header': '🎵 Ваши данные TikTok:'}.get(header_key, header)
     chunks: List[str] = []
     cur: List[str] = []
     cur_len = 0
@@ -1170,13 +1186,15 @@ def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: L
         v = str(v).strip()
         if not v:
             continue
-        if cur and (cur_len + len(v) + 1 > BUYER_MSG_LIMIT or len(cur) >= BUYER_MSG_MAX_LINES):
-            chunks.append('\n'.join(cur))
+        if format_enabled:
+            v = _format_account_data(v)
+        if cur and (cur_len + len(v) + 2 > BUYER_MSG_LIMIT or len(cur) >= BUYER_MSG_MAX_LINES):
+            chunks.append('\n\n'.join(cur) if format_enabled else '\n'.join(cur))
             cur, cur_len = ([], 0)
         cur.append(v)
-        cur_len += len(v) + 1
+        cur_len += len(v) + 2
     if cur:
-        chunks.append('\n'.join(cur))
+        chunks.append('\n\n'.join(cur) if format_enabled else '\n'.join(cur))
     header_sent = _fp_send(chat_id, header, buyer_username)
     goods_messages: List[str] = list(chunks)
     results = []
@@ -1386,12 +1404,14 @@ def _rename_group(old: str, new: str) -> int:
     return n
 def _get_lot_fields_safe(lot_id: str):
     try:
-        return cardinal.account.get_lot_fields(int(lot_id))
+        return _lot_account().get_lot_fields(int(lot_id))
     except Exception as primary_error:
+        if isinstance(primary_error, LotRequestDeferred):
+            raise
         if BeautifulSoup is None or fp_types is None:
             raise
         try:
-            response = cardinal.account.method('get', f'lots/offerEdit?offer={int(lot_id)}', {}, {}, raise_not_200=True)
+            response = _lot_account().method('get', f'lots/offerEdit?offer={int(lot_id)}', {}, {}, raise_not_200=True)
             parser = BeautifulSoup(response.content.decode(), 'lxml')
             form = parser.find('form', class_='form-offer-editor')
             if form is None:
@@ -1438,7 +1458,7 @@ def _save_lot_fields_safe(lot_fields: Any) -> None:
         renewed = renew()
         if renewed is not None:
             lot_fields = renewed
-    cardinal.account.save_lot(lot_fields)
+    _lot_account().save_lot(lot_fields)
 
 def _offer_form_payload(html_text: str) -> Dict[str, str]:
 
@@ -1483,7 +1503,7 @@ def _offer_form_payload(html_text: str) -> Dict[str, str]:
 
 def _offer_create_form_payload(node_id: int) -> Dict[str, str]:
 
-    account = cardinal.account
+    account = _lot_account()
     headers = {
         'accept': '*/*',
         'content-type': 'application/json',
@@ -1578,7 +1598,7 @@ def _offer_response_lot_id(response: Any, excluded: Optional[set]=None) -> Optio
     return None
 
 def _post_new_offer(payload: Dict[str, str], node_id: int) -> Any:
-    account = cardinal.account
+    account = _lot_account()
     headers = {
         'accept': '*/*',
         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -1628,7 +1648,7 @@ def _parse_lot_ids(text: str) -> List[str]:
             ids.append(lot_id)
     return ids
 def _set_lot_active(lot_id: str, active: bool) -> bool:
-    for attempt in range(3):
+    for attempt in range(1):
         try:
             lf = _get_lot_fields_safe(str(lot_id))
             if bool(getattr(lf, 'active', None)) == active:
@@ -1636,9 +1656,11 @@ def _set_lot_active(lot_id: str, active: bool) -> bool:
             lf.active = active
             _save_lot_fields_safe(lf)
             return True
+        except LotRequestDeferred:
+            break
         except Exception as e:
             logger.warning(f'{LP} set_lot_active({lot_id},{active}) attempt {attempt + 1}: {e}')
-            time.sleep(3 * (attempt + 1))
+
     return False
 FP_AUTO_BUFFER = 25
 def _fp_buffer() -> int:
@@ -1669,7 +1691,7 @@ def _binding_source_stock(binding: Dict[str, Any], max_age: float=60.0) -> int:
     try:
         return _product_stock(int(binding.get('product_id')), max_age=max_age, provider=str(binding.get('api_provider') or 'steam'))
     except Exception:
-        return 0
+        raise
 def _binding_effective_stock(binding: Dict[str, Any], max_age: float=60.0) -> int:
     return max(0, _binding_source_stock(binding, max_age=max_age) // _binding_qty_per_unit(binding))
 def _binding_effective_stock_cached(binding: Dict[str, Any]) -> Optional[int]:
@@ -1979,7 +2001,7 @@ def _create_wholesale_temp_lot(source_lot_id: str, chat_id: Any, buyer: str, qty
         raise RuntimeError('FunPayAPI не отдал поля исходного лота для шаблона.')
 
     try:
-        before = {str(l.id) for l in cardinal.account.get_my_subcategory_lots(int(subcat_id))}
+        before = {str(l.id) for l in _lot_account().get_my_subcategory_lots(int(subcat_id))}
     except Exception as e:
         raise RuntimeError(f'Не удалось получить список лотов категории перед созданием: {e}') from e
 
@@ -2093,7 +2115,7 @@ def _create_wholesale_temp_lot(source_lot_id: str, chat_id: Any, buyer: str, qty
         for _ in range(12):
             time.sleep(1)
             try:
-                after = {str(l.id) for l in cardinal.account.get_my_subcategory_lots(int(subcat_id))}
+                after = {str(l.id) for l in _lot_account().get_my_subcategory_lots(int(subcat_id))}
             except Exception:
                 continue
             new_ids = sorted(after - before)
@@ -2364,7 +2386,7 @@ def _sync_binding_stock(lot_id: str, binding: Dict[str, Any]) -> Tuple[bool, int
         state = _stock_sync_state.get(lot_id)
         if state and int(state[0]) == effective and now - float(state[1]) < STOCK_SYNC_VERIFY_SEC:
             return (True, effective)
-    for attempt in range(4):
+    for attempt in range(1):
         try:
             lf = _get_lot_fields_safe(lot_id)
             changed = False
@@ -2391,9 +2413,11 @@ def _sync_binding_stock(lot_id: str, binding: Dict[str, Any]) -> Tuple[bool, int
                     for key, _ in oldest:
                         _stock_sync_state.pop(key, None)
             return (True, effective)
+        except LotRequestDeferred:
+            break
         except Exception as e:
             logger.warning(f'{LP} sync binding stock({lot_id}) attempt {attempt + 1}: {e}')
-            time.sleep(2 * (attempt + 1))
+
     return (False, effective)
 def _sync_fp_stock(lot_id: str, product_id: int) -> Tuple[bool, int]:
     with _bindings_lock:
@@ -2403,7 +2427,7 @@ def _sync_fp_stock(lot_id: str, product_id: int) -> Tuple[bool, int]:
     binding = {'delivery_mode': 'api', 'product_id': int(product_id), 'qty_per_unit': 1, 'fp_stock_target': 0, 'fp_auto': False}
     return _sync_binding_stock(str(lot_id), binding)
 def _disable_fp_autodelivery(lot_id: str) -> bool:
-    for attempt in range(3):
+    for attempt in range(1):
         try:
             lf = _get_lot_fields_safe(str(lot_id))
             if not bool(getattr(lf, 'auto_delivery', False)) and not list(getattr(lf, 'secrets', None) or []):
@@ -2413,9 +2437,11 @@ def _disable_fp_autodelivery(lot_id: str) -> bool:
             _save_lot_fields_safe(lf)
             _log_event('funpay_autodelivery_disabled', lot_id=lot_id)
             return True
+        except LotRequestDeferred:
+            break
         except Exception as e:
             logger.warning(f'{LP} disable_fp_ad({lot_id}) attempt {attempt + 1}: {e}')
-            time.sleep(2 * (attempt + 1))
+
     return False
 def _enforce_manual_delivery_all(stop_event: Optional[threading.Event]=None, generation: Optional[int]=None) -> None:
     event = stop_event or _stop_event
@@ -2434,7 +2460,7 @@ def _product_stock(product_id: int, max_age: float=60.0, provider: str='steam') 
             if int(it.get('id', -1)) == int(product_id):
                 return int(it.get('in_stock', 0))
     except Exception:
-        pass
+        raise
     return 0
 def _product_price_kop(product_id: int, max_age: float=60.0, provider: str='steam') -> int:
     try:
@@ -2445,13 +2471,15 @@ def _product_price_kop(product_id: int, max_age: float=60.0, provider: str='stea
         pass
     return 0
 def _delete_lot_fp(lot_id: str) -> bool:
-    for attempt in range(3):
+    for attempt in range(1):
         try:
-            cardinal.account.delete_lot(int(lot_id))
+            _lot_account().delete_lot(int(lot_id))
             return True
+        except LotRequestDeferred:
+            break
         except Exception as e:
             logger.warning(f'{LP} delete_lot({lot_id}) attempt {attempt + 1}: {e}')
-            time.sleep(2 * (attempt + 1))
+
     return False
 def _save_auto_disabled() -> None:
     save_json(AUTO_DISABLED_FILE, _auto_disabled)
@@ -2487,7 +2515,7 @@ def _region_field_for_lot(source_lot_id: str, src_country: str, dst_country: str
     if not src_country or not dst_country:
         return (None, None)
     try:
-        resp = cardinal.account.method('get', f'lots/offerEdit?offer={source_lot_id}', {}, {}, raise_not_200=True)
+        resp = _lot_account().method('get', f'lots/offerEdit?offer={source_lot_id}', {}, {}, raise_not_200=True)
         html_txt = resp.content.decode()
     except Exception as e:
         logger.warning(f'{LP} region form fetch({source_lot_id}): {e}')
@@ -2553,7 +2581,7 @@ def _copy_lot(source_lot_id: str, product_id: int, dst_product_title: str, qty: 
                 logger.warning(f'{LP} region set: {e}')
     with _lot_create_lock:
         try:
-            before = {str(l.id) for l in cardinal.account.get_my_subcategory_lots(int(subcat_id))}
+            before = {str(l.id) for l in _lot_account().get_my_subcategory_lots(int(subcat_id))}
         except Exception as e:
             return (None, None, None, f'не удалось получить список лотов категории: {e}')
         lf.lot_id = 0
@@ -2571,7 +2599,7 @@ def _copy_lot(source_lot_id: str, product_id: int, dst_product_title: str, qty: 
             return (None, None, None, f'FunPay отклонил создание лота: {e}')
         time.sleep(2.5)
         try:
-            after = {str(l.id) for l in cardinal.account.get_my_subcategory_lots(int(subcat_id))}
+            after = {str(l.id) for l in _lot_account().get_my_subcategory_lots(int(subcat_id))}
         except Exception as e:
             return (None, None, None, f'лот создан, но не удалось найти его id: {e}')
     new_ids = list(after - before)
@@ -2661,6 +2689,9 @@ def _find_binding(order, event) -> Tuple[Optional[str], Optional[Dict[str, Any]]
     candidates = []
     candidates.extend(_lot_id_candidates(event, 'event'))
     candidates.extend(_lot_id_candidates(order, 'order'))
+    for source, lot_id in candidates:
+        if lot_id in bindings:
+            return (lot_id, bindings[lot_id])
     texts = _order_texts(order)
     full = None
     if cardinal is not None and getattr(cardinal, 'account', None) is not None and oid:
@@ -2712,7 +2743,7 @@ def _find_binding(order, event) -> Tuple[Optional[str], Optional[Dict[str, Any]]
     _log_event('binding_miss', order_id=oid or '?', candidate_lot_ids=','.join(seen_ids) if seen_ids else 'none', configured_lot_ids=','.join(sorted(bindings.keys())) if bindings else 'none', title=title[:160] or 'none')
     logger.info(f'{LP} #{oid or "?"} binding not found: lot_ids={seen_ids or "none"} configured={list(bindings.keys()) or "none"} title={title[:160] or "none"}')
     return (None, None)
-def handle_new_order(cardinal_obj, event, *args) -> None:
+def _handle_new_order_work(cardinal_obj, event, *args) -> None:
     global cardinal
     if cardinal is None:
         cardinal = cardinal_obj
@@ -2962,7 +2993,7 @@ def _fulfill_database_order(od: Dict[str, Any]) -> Dict[str, Any]:
         _save_orders_state()
     threading.Thread(target=_resync_database_lots, args=(database_id,), daemon=True).start()
     return {'status': 'ready', 'values': values, 'cost_kop': 0, 'source': 'database', 'database_id': database_id}
-def process_order(oid: str) -> None:
+def _process_order_work(oid: str) -> None:
     with _orders_lock:
         od = _pending.get(oid)
         if not od:
@@ -3051,10 +3082,7 @@ def process_order(oid: str) -> None:
     lot_key = od.get('lot_key')
     with _bindings_lock:
         binding = _normalize_binding(_bindings.get(lot_key or '') or {}) if lot_key else None
-    if delivery_mode == 'database' and str(od.get('database_id') or ''):
-        threading.Thread(target=_resync_database_lots, args=(str(od.get('database_id') or ''),), daemon=True).start()
-    elif binding and lot_key:
-        threading.Thread(target=_sync_binding_stock, args=(str(lot_key), binding), daemon=True).start()
+    _request_stock_check()
     bal_txt = ''
     if delivery_mode == 'api':
         try:
@@ -3097,6 +3125,7 @@ def _error_human(code: str, message: str='', provider: str='steam') -> str:
 BUSINESS_ERRORS = {'insufficient_balance', 'out_of_stock', 'not_found', 'invalid_request'}
 REFUNDABLE = {'insufficient_balance', 'out_of_stock', 'not_found', 'qty_limit', 'loss_block', 'database_stock', 'database_missing'}
 def _fail_order(oid: str, err: ShopApiError) -> None:
+    _request_stock_check()
     with _orders_lock:
         od = _pending.get(oid)
         if not od:
@@ -3421,7 +3450,7 @@ def _handle_mail_command(event: Any, msg: Any, text: str) -> bool:
         _fp_send(chat_id, '❌ Не удалось получить письмо из-за временной ошибки. Попробуйте ещё раз позже.')
         _log_event('mail_command_error', level=logging.ERROR, login=login, chat_id=chat_id, error=str(e)[:200])
     return True
-def handle_new_message(cardinal_obj, event, *args) -> None:
+def _handle_new_message_work(cardinal_obj, event, *args) -> None:
     global cardinal
     if cardinal is None:
         cardinal = cardinal_obj
@@ -3492,6 +3521,8 @@ def _balance_loop(stop_event: Optional[threading.Event]=None, generation: Option
 def _stock_check_once() -> None:
     if not cfg_get('plugin_enabled'):
         return
+    if time.time() < _lot_retry_at:
+        return
     bindings = _enabled_bindings()
     if not bindings:
         return
@@ -3500,8 +3531,14 @@ def _stock_check_once() -> None:
     enabled_now = []
     changed = False
     for lot_id, binding in bindings.items():
+        if _stop_event.is_set() or time.time() < _lot_retry_at:
+            break
         mode = str(binding.get('delivery_mode') or 'api')
-        sync_ok, _ = _sync_binding_stock(lot_id, binding)
+        try:
+            sync_ok, _ = _sync_binding_stock(lot_id, binding)
+        except Exception as exc:
+            logger.warning('%s Остаток лота %s неизвестен: %s', LP, lot_id, exc)
+            continue
         if not sync_ok:
             _log_event('funpay_manual_stock_sync_failed', level=logging.WARNING, lot_id=lot_id)
         source_id = str(binding.get('database_id') or '') if mode == 'database' else str(binding.get('product_id') or '')
@@ -3948,7 +3985,7 @@ def _menu_plugin_state(chat_id, message_id=None) -> None:
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_order_settings(chat_id, message_id=None) -> None:
     text = f'📦 <b>Настройки заказов</b>\n\n↩️ Автовозврат: <b>{_onoff("auto_refund_enabled")}</b>\n🔌 Автодеактивация лотов при отсутствии товара: <b>{_onoff("auto_lots_by_stock")}</b>\n🔄 Автовключение API-лотов после пополнения: <b>{_onoff("auto_reenable_api_lots")}</b>\n📬 Команда <code>!mail_почта</code> покупателям: <b>{_onoff("buyer_mail_command_enabled")}</b>\n\n'
-    kb = _make_kb([[(f'↩️ Авто-возврат: {_onoff("auto_refund_enabled")}', 'd4s_otgl:auto_refund_enabled')], [(f'🔌 Автодеактивация: {_onoff("auto_lots_by_stock")}', 'd4s_otgl:auto_lots_by_stock')], [(f'🔄 Включать после пополнения: {_onoff("auto_reenable_api_lots")}', 'd4s_otgl:auto_reenable_api_lots')], [(f'📬 !mail покупателям: {_onoff("buyer_mail_command_enabled")}', 'd4s_otgl:buyer_mail_command_enabled')], [('💬 Сообщения покупателю', 'd4s_messages')], [('🔙 Назад', 'd4s_plugin_set')]])
+    kb = _make_kb([[(f'↩️ Авто-возврат: {_onoff("auto_refund_enabled")}', 'd4s_otgl:auto_refund_enabled')], [(f'🔌 Автодеактивация: {_onoff("auto_lots_by_stock")}', 'd4s_otgl:auto_lots_by_stock')], [(f'🔄 Включать после пополнения: {_onoff("auto_reenable_api_lots")}', 'd4s_otgl:auto_reenable_api_lots')], [(f'📬 !mail покупателям: {_onoff("buyer_mail_command_enabled")}', 'd4s_otgl:buyer_mail_command_enabled')], [(f'🧾 Разделять данные аккаунта: {_onoff("format_account_data")}', 'd4s_otgl:format_account_data')], [('💬 Сообщения покупателю', 'd4s_messages')], [('🔙 Назад', 'd4s_plugin_set')]])
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_notifications(chat_id, message_id=None) -> None:
     text = f'🔔 <b>Уведомления</b>\n\nВсе уведомления: <b>{_onoff("notifications_enabled")}</b>\nПорог низкого баланса: <b>{float(cfg_get("low_balance_threshold_rub") or 0):.0f} ₽</b>\nПроверка баланса: <b>раз в {int(cfg_get("balance_check_interval_min") or 10)} мин.</b>\n\nКаждый тип можно включить или выключить отдельно.'
@@ -4015,7 +4052,7 @@ def _menu_config(chat_id, message_id=None) -> None:
 def _menu_databases(chat_id, message_id=None) -> None:
     meta = _load_databases_meta()
     rows = []
-    lines = ['🗃 <b>Базы аккаунтов и почт</b>', '', 'Steam-базы можно пополнять через dim4n4ik.shop, а почтовые базы — только текстом или файлом.', '']
+    lines = ['🗃 <b>Базы аккаунтов и почт</b>', '', 'Базы аккаунтов можно пополнять текстом или файлом. Покупка через API доступна для поддерживаемых товаров; базы TikTok и почт пополняются вручную.', '']
     for db in meta['databases']:
         available = _database_stock(db['id'])
         reserved = _database_reserved_count(db['id'])
@@ -4043,9 +4080,9 @@ def _menu_database_detail(chat_id, message_id, database_id: str) -> None:
     else:
         text = f"🗃 <b>{db['name']}</b>\n\n📦 Товар: <b>{db['product_title']}</b>\nID товара: <code>{db['product_id']}</code>\n🎮 Steam-магазин: <a href=\"{SHOP_BOT_URL}\">открыть бота</a>\n✅ Доступно: <b>{available}</b>\n⏳ В резерве: <b>{reserved}</b>\n➕ Всего добавлено: <b>{db['total_added']}</b>\n🛒 Продано из базы: <b>{db['total_sold']}</b>\n🔗 Используют лоты: <b>{len(refs)}</b>"
     rows = [[('👁 Просмотреть аккаунты', f'd4s_db_view:{database_id}:available:0')]]
-    if not mail:
+    if not mail and _database_source_type(db) != 'tiktok':
         rows.append([('🛒 Купить через dim4n4ik.shop', f'd4s_db_replenish:{database_id}')])
-    rows.extend([[('📝 Добавить текстом', f'd4s_db_import_text:{database_id}'), ('📎 Загрузить файлом', f'd4s_db_import_file:{database_id}')], [('✏️ Переименовать', f'd4s_db_rename:{database_id}')], [('🗑 Удалить базу', f'd4s_db_delete_ask:{database_id}')], [('🔙 К базам', 'd4s_databases')]])
+    rows.extend([[('📝 Добавить текстом', f'd4s_db_import_text:{database_id}'), ('📎 Загрузить файлом', f'd4s_db_import_file:{database_id}')], [('✏️ Переименовать', f'd4s_db_rename:{database_id}')], [('🧹 Очистить данные базы', f'd4s_db_clear_ask:{database_id}')], [('🗑 Удалить базу', f'd4s_db_delete_ask:{database_id}')], [('🔙 К базам', 'd4s_databases')]])
     kb = _make_kb(rows)
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_database_items(chat_id, message_id, database_id: str, section: str='available', page: int=0) -> None:
@@ -4112,7 +4149,7 @@ def _menu_database_delete_confirm(chat_id, message_id, database_id: str) -> None
     _tg_edit(chat_id, message_id, text, kb) if message_id else _tg_send(chat_id, text, kb)
 def _menu_database_product_select(chat_id, message_id=None, page: int=0) -> None:
     try:
-        items = [it for it in _visible_catalog() if str(it.get('kind') or '').lower() != 'tiktok']
+        items = _visible_catalog()
     except Exception as e:
         _tg_edit(chat_id, message_id, f'❌ Каталог недоступен: {e}', _make_kb([[('🔙 К базам', 'd4s_databases')]]))
         return
@@ -4124,7 +4161,7 @@ def _menu_database_product_select(chat_id, message_id=None, page: int=0) -> None
     if pages > 1:
         rows.append([('⬅️', f'd4s_dbprodp:{max(0, page - 1)}'), (f'{page + 1}/{pages}', 'd4s_noop'), ('➡️', f'd4s_dbprodp:{min(pages - 1, page + 1)}')])
     rows.append([('❌ Отмена', 'd4s_databases')])
-    text = '🗃 <b>Создание базы</b>\n\nВыберите товар dim4n4ik.shop. В этой базе будут храниться только аккаунты этого товара.'
+    text = '🗃 <b>Создание базы</b>\n\nВыберите товар dim4n4ik.shop. Скрытые категории не показываются. Базы TikTok пополняются текстом или файлом; cookies при этом не сохраняются.'
     _tg_edit(chat_id, message_id, text, _make_kb(rows)) if message_id else _tg_send(chat_id, text, _make_kb(rows))
 def _lot_field_title(fields: Any, lot_id: str) -> str:
     for key in ('title_ru', 'title_en', 'title', 'name', 'short_description'):
@@ -4262,7 +4299,7 @@ def _discover_funpay_lots(all_categories: bool=False) -> Dict[str, Any]:
                     objects[str(lot_id)] = value
             except Exception:
                 pass
-    account = cardinal.account
+    account = _lot_account()
     if not all_categories:
         for category_id in AUTO_LOT_CATEGORIES:
             try:
@@ -4284,7 +4321,7 @@ def _discover_funpay_lots(all_categories: bool=False) -> Dict[str, Any]:
         try:
             updater = getattr(cardinal, 'update_lots_and_categories', None)
             if callable(updater):
-                updater()
+                _lot_call(updater)
         except Exception:
             pass
         profile = getattr(cardinal, 'tg_profile', None) or getattr(cardinal, 'profile', None)
@@ -4570,7 +4607,7 @@ def _catalog_product_type(item: Any) -> str:
         return ''
     kind = str(item.get('kind') or '').strip().lower()
     text = f"{item.get('title', '')} {item.get('category', '')}".casefold()
-    if kind == 'tiktok':
+    if kind == 'tiktok' or re.search(r'tik\s*tok|тик\s*ток', text, re.IGNORECASE):
         return 'tiktok'
     if re.search(r'\b(?:riot|valorant|lol)\b', text, re.IGNORECASE):
         return 'riot'
@@ -4827,11 +4864,8 @@ def _bulk_delete_lots_worker(chat_id, message_id, delete_funpay: bool) -> None:
     _tg_send(chat_id, text)
     _menu_lot_settings(chat_id, message_id)
 def _resync_database_lots(database_id: str) -> None:
-    with _bindings_lock:
-        targets = [(str(lot_id), _normalize_binding(b)) for lot_id, b in _bindings.items() if str(b.get('delivery_mode') or '') == 'database' and str(b.get('database_id') or '') == str(database_id) and b.get('enabled', True)]
-    for lot_id, binding in targets:
-        _sync_binding_stock(lot_id, binding)
-        time.sleep(0.15)
+    _request_stock_check()
+
 def _menu_lot_settings(chat_id, message_id=None, page: int=0, section: str='all') -> None:
     report = _last_lot_discovery_report
     lots = _cached_funpay_lots()
@@ -5357,7 +5391,19 @@ def _cb_router(call) -> None:
         except Exception:
             return default
     arg = args_[0] if args_ else ''
-    if action == 'd4s_noop':
+    if action == 'd4s_db_clear_ask':
+        ack()
+        kb = _make_kb([[('Да, очистить все данные', f'd4s_db_clear_yes:{arg}')], [('Отмена', f'd4s_db:{arg}')]])
+        _tg_edit(chat_id, message_id, 'Удалить все аккаунты и историю выбранной базы? Название и привязки лотов сохранятся. При наличии резервов или незавершённых заказов очистка запрещена.', kb)
+    elif action == 'd4s_db_clear_yes':
+        ack()
+        try:
+            _clear_database_data(arg)
+            _tg_send(chat_id, 'Данные базы очищены. Проверка остатков лотов поставлена в очередь.')
+            _menu_database_detail(chat_id, message_id, arg)
+        except Exception as e:
+            _tg_send(chat_id, str(e))
+    elif action == 'd4s_noop':
         ack()
     elif action == 'd4s_home':
         ack()
@@ -5906,7 +5952,7 @@ def _cb_router(call) -> None:
         ack()
         _menu_plugin_state(chat_id, message_id)
     elif action == 'd4s_otgl':
-        if arg in ('auto_refund_enabled', 'auto_lots_by_stock', 'auto_reenable_api_lots', 'buyer_mail_command_enabled'):
+        if arg in ('auto_refund_enabled', 'auto_lots_by_stock', 'auto_reenable_api_lots', 'buyer_mail_command_enabled', 'format_account_data'):
             cfg_set(arg, not cfg_get(arg))
         ack()
         _menu_order_settings(chat_id, message_id)
@@ -6968,7 +7014,6 @@ def d4s_pre_init(c, *args) -> None:
         save_json(STATS_FILE, dict(DEFAULT_STATS))
     if not Path(WHOLESALE_FILE).exists() or _raw_json(Path(WHOLESALE_FILE), dict) is None:
         save_json(WHOLESALE_FILE, {})
-    _cleanup_wholesale_lots()
     try:
         auth = getattr(getattr(c, 'telegram', None), 'authorized_users', None)
         if isinstance(auth, dict) and auth:
@@ -6982,8 +7027,9 @@ def d4s_pre_init(c, *args) -> None:
         logger.warning(f'{LP} add_telegram_commands: {e}')
     if bot:
         _register_telegram_handlers(c)
-    threading.Thread(target=_enforce_manual_delivery_all, args=(runtime_stop, generation), daemon=True, name=f'd4shop-manual-{generation}').start()
-    _recover_pending_orders_after_restart()
+    threading.Thread(target=_recover_pending_orders_after_restart, daemon=True, name='d4shop-recovery').start()
+    _load_lot_cooldown()
+    _start_event_workers(runtime_stop, generation)
     start_background_loops(runtime_stop, generation)
     logger.info(f'{LP} initialized generation={generation}')
 def on_delete(*args) -> None:
@@ -6996,6 +7042,149 @@ def on_delete(*args) -> None:
         pass
     logger.info(f'{LP} plugin delete: state saved')
     _close_file_logging()
+
+def process_order(oid: str) -> None:
+    try:
+        _process_order_work(oid)
+    finally:
+        _request_stock_check()
+
+class LotRequestDeferred(RuntimeError):
+    pass
+
+_lot_request_lock = threading.RLock()
+_lot_retry_at = 0.0
+_lot_next_at = 0.0
+_stock_wake = threading.Event()
+_event_queues = {}
+_event_keys = set()
+_event_lock = threading.Lock()
+
+def _load_lot_cooldown():
+    global _lot_retry_at
+    state = load_json(os.path.join(STORAGE_DIR, 'funpay_cooldown.json'), {})
+    _lot_retry_at = max(_lot_retry_at, float(state.get('retry_at', 0) or 0))
+
+def _is_429(value):
+    seen = set()
+    while value is not None and id(value) not in seen:
+        seen.add(id(value))
+        response = getattr(value, 'response', None)
+        codes = [getattr(value, 'status_code', None), getattr(value, 'status', None), getattr(value, 'code', None), getattr(response, 'status_code', None)]
+        if any(str(code) == '429' for code in codes) or (isinstance(value, BaseException) and re.search(r'(?<!\d)429(?!\d)|too many requests', str(value), re.I)):
+            return True
+        value = getattr(value, '__cause__', None) or getattr(value, '__context__', None)
+    return False
+
+def _lot_call(fn, *args, **kwargs):
+    global _lot_retry_at, _lot_next_at
+    with _lot_request_lock:
+        if _stop_event.is_set() or time.time() < _lot_retry_at:
+            raise LotRequestDeferred('Запросы к лотам отложены после 429')
+        delay = max(0.0, _lot_next_at - time.monotonic())
+        if _stop_event.wait(delay):
+            raise LotRequestDeferred('Плагин остановлен')
+        try:
+            result = fn(*args, **kwargs)
+            if _is_429(result):
+                raise RuntimeError('FunPay HTTP 429')
+            return result
+        except Exception as exc:
+            if _is_429(exc):
+                _lot_retry_at = time.time() + 3600
+                try:
+                    save_json(os.path.join(STORAGE_DIR, 'funpay_cooldown.json'), {'retry_at': _lot_retry_at})
+                except Exception:
+                    logger.exception('%s Не удалось сохранить паузу 429', LP)
+                logger.warning('%s FunPay 429: все запросы плагина к лотам приостановлены на час', LP)
+                raise LotRequestDeferred('FunPay 429: повторная проверка через час') from exc
+            raise
+        finally:
+            _lot_next_at = time.monotonic() + 3.0
+
+class _LotAccount:
+    def __getattr__(self, name):
+        value = getattr(cardinal.account, name)
+        if callable(value):
+            return lambda *args, **kwargs: _lot_call(value, *args, **kwargs)
+        return value
+
+def _lot_account():
+    return _LotAccount()
+
+def _request_stock_check():
+    for cache in _provider_catalog_cache.values():
+        cache['ts'] = 0.0
+    with _stock_sync_lock:
+        _stock_sync_state.clear()
+    _stock_wake.set()
+
+def _event_worker(kind, work_queue, stop, generation):
+    while not stop.is_set() and generation == _runtime_generation:
+        try:
+            key, obj, event, args = work_queue.get(timeout=0.5)
+        except queue.Empty:
+            continue
+        try:
+            if kind == 'order':
+                _handle_new_order_work(obj, event, *args)
+            else:
+                _handle_new_message_work(obj, event, *args)
+        except Exception:
+            logger.exception('%s Ошибка фоновой обработки %s', LP, kind)
+        finally:
+            with _event_lock:
+                _event_keys.discard(key)
+            work_queue.task_done()
+
+def _start_event_workers(stop, generation):
+    with _event_lock:
+        _event_keys.clear()
+        for kind in ('order', 'message'):
+            work_queue = queue.Queue()
+            _event_queues[kind] = work_queue
+            threading.Thread(target=_event_worker, args=(kind, work_queue, stop, generation), daemon=True, name=f'd4shop-{kind}-{generation}').start()
+
+def _enqueue_event(kind, obj, event, args):
+    if _stop_event.is_set() or not cfg_get('plugin_enabled'):
+        return
+    item = getattr(event, 'order' if kind == 'order' else 'message', None) or event
+    if kind == 'message':
+        text = _clean_text(str(getattr(item, 'content', None) or getattr(item, 'text', None) or ''))
+        if not text.startswith('!') and not ORDER_PAID_RE.search(text) and not _wholesale_dialog_get(_message_chat_id(event, item)):
+            return
+    key = (kind, str(getattr(item, 'id', None) or id(item)), str(getattr(item, 'chat_id', '')))
+    with _event_lock:
+        if key in _event_keys or kind not in _event_queues:
+            return
+        _event_keys.add(key)
+        _event_queues[kind].put_nowait((key, obj, event, args))
+
+def handle_new_order(cardinal_obj, event, *args):
+    _enqueue_event('order', cardinal_obj, event, args)
+
+def handle_new_message(cardinal_obj, event, *args):
+    _enqueue_event('message', cardinal_obj, event, args)
+
+def _clear_database_data(database_id):
+    with _orders_lock, _database_lock:
+        if not _database_by_id(database_id):
+            raise ValueError('База не найдена')
+        if any(str(od.get('database_id') or '') == str(database_id) for od in _pending.values()):
+            raise ValueError('Сначала завершите заказы, использующие эту базу.')
+        inv = _load_database_inventory(database_id)
+        if any(inv['reserved'].values()):
+            raise ValueError('В базе есть резерв: сначала завершите или отмените выдачу.')
+        _save_database_inventory(database_id, _empty_database_inventory())
+        meta = _load_databases_meta()
+        for db in meta['databases']:
+            if str(db.get('id')) == str(database_id):
+                db['total_added'] = 0
+                db['total_sold'] = 0
+                db['updated_at'] = _now_str()
+        _save_databases_meta(meta)
+    _request_stock_check()
+
 BIND_TO_PRE_INIT = [d4s_pre_init]
 BIND_TO_NEW_ORDER = [handle_new_order]
 BIND_TO_NEW_MESSAGE = [handle_new_message]
