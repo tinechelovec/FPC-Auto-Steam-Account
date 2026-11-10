@@ -34,7 +34,7 @@ try:
 except Exception:
     tg_types = None
 NAME = 'Auto Steam Account (Dim4n4ik Shop)'
-VERSION = '1.5.0'
+VERSION = '1.5.1'
 DESCRIPTION = 'пупупу'
 CREDITS = '@dmitry_mak09, @tinechelovec'
 UUID = '6e8ff163-7a2c-4510-b6a9-f41c3d8edc6d'
@@ -1175,17 +1175,16 @@ def _send_goods(order_id: str, chat_id, buyer_username: Optional[str], values: L
     else:
         header_key = 'goods_header'
     header = _buyer_message(header_key, order_id=order_id, order_url=order_url, product_title=product_title, qty=qty)
-    format_enabled = bool(cfg_get('format_account_data')) and header_key != 'mail_goods_header'
-    if format_enabled and any(_format_account_data(str(v)) != str(v).strip() for v in values):
+    clean_values = [str(v).strip() for v in values if str(v).strip()]
+    total_qty = max(len(clean_values), int(qty or 0))
+    format_enabled = bool(cfg_get('format_account_data')) and header_key != 'mail_goods_header' and total_qty < 2
+    if format_enabled and any(_format_account_data(v) != v for v in clean_values):
         if header == DEFAULT_BUYER_MESSAGES.get(header_key):
             header = {'goods_header': '🎮 Ваши данные Steam:', 'riot_goods_header': '🔴 Ваши данные Valorant / Riot:', 'tiktok_goods_header': '🎵 Ваши данные TikTok:'}.get(header_key, header)
     chunks: List[str] = []
     cur: List[str] = []
     cur_len = 0
-    for v in values:
-        v = str(v).strip()
-        if not v:
-            continue
+    for v in clean_values:
         if format_enabled:
             v = _format_account_data(v)
         if cur and (cur_len + len(v) + 2 > BUYER_MSG_LIMIT or len(cur) >= BUYER_MSG_MAX_LINES):
